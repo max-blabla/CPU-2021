@@ -2,7 +2,6 @@
 module rf
 #(
     parameter RegFileLength     =   31,
-    parameter   OpcodeLength    =   6,
     parameter   Rs1Length       =   4,
     parameter   Rs2Length       =   4,
     parameter   RdLength        =   4
@@ -22,6 +21,7 @@ module rf
     input  wire    [Rs1Length:`Zero]       rs1_from_decoder,
     input  wire    [Rs2Length:`Zero]       rs2_from_decoder,
     input  wire    [`DataLength:`Zero]     imm_from_decoder,
+    input  wire    [`OpcodeLength:`Zero]   op_from_decoder,
     output wire    is_empty_to_rob,
     output wire    is_stall_to_instr_queue,
     output wire    [`DataLength:`Zero]     imm_to_rob,
@@ -29,7 +29,8 @@ module rf
     output wire    [`DataLength:`Zero]     v1_to_rob,
     output wire    [`DataLength:`Zero]     v2_to_rob,
     output wire    [`PcLength:`Zero]       q1_to_rob,
-    output wire    [`PcLength:`Zero]       q2_to_rob
+    output wire    [`PcLength:`Zero]       q2_to_rob,
+    output wire    [`OpcodeLength:`Zero]   op_to_rob
 );
 integer i;
 reg [`DataLength:`Zero] RegValue [RegFileLength:`Zero];
@@ -49,6 +50,7 @@ always @(posedge rst) begin
     v2 <= 0;
     q1 <= 0;
     q2 <= 0;
+    
 end
 always @(posedge clk) begin
     //先判断是否完成
@@ -108,5 +110,5 @@ assign q2_to_rob = q2;
 assign imm_to_rob = imm_from_decoder;
 assign is_empty_to_rob = is_empty;
 assign pc_to_rob = pc_from_decoder;
-
+assign op_to_rob = op_from_decoder;
 endmodule

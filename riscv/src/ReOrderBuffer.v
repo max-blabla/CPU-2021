@@ -3,8 +3,7 @@ module rob #
 (
     parameter BufferLength = 7,
     parameter PointerLength = 2,
-    parameter RdLength = 4,
-    parameter OpLength = 5
+    parameter RdLength = 4
 )
 
 (
@@ -20,6 +19,7 @@ module rob #
     input wire[`DataLength:`Zero] pc_from_alu,
     input wire[`DataLength:`Zero] data_from_slb,
     input wire[`DataLength:`Zero] pc_from_slb,
+    input wire[`OpcodeLength:`Zero] op_from_reg,
     input wire[`DataLength:`Zero] v1_from_reg,
     input wire[`DataLength:`Zero] v2_from_reg,
     input wire[`DataLength:`Zero] q1_from_reg,
@@ -49,11 +49,13 @@ module rob #
     output wire[`PcLength:`Zero] q1_to_rs,
     output wire[`PcLength:`Zero] q2_to_rs,
     output wire[`DataLength:`Zero] imm_to_rs,
+    output wire[`OpcodeLength:`Zero] op_to_rs,
     output wire[`DataLength:`Zero] v1_to_slb,
     output wire[`DataLength:`Zero] v2_to_slb,
     output wire[`PcLength:`Zero] q1_to_slb,
     output wire[`PcLength:`Zero] q2_to_slb,
     output wire[`DataLength:`Zero] imm_to_slb,
+    output wire[`OpcodeLength:`Zero] op_to_slb,
     output wire[`DataLength:`Zero] commit_data_to_rs,
     output wire[`DataLength:`Zero] commit_data_to_slb,
     output wire[`DataLength:`Zero] commit_data_to_reg
@@ -61,13 +63,15 @@ module rob #
 reg [`DataLength:`Zero] data_storage[BufferLength:`Zero];
 reg [`PcLength:`Zero] pc_storage[BufferLength:`Zero];
 reg [RdLength:`Zero] rd_storage[BufferLength:`Zero];
-reg [OpLength:`Zero] op_storage[BufferLength:`Zero];
+reg [`OpcodeLength:`Zero] op_storage[BufferLength:`Zero];
 reg status_storage[BufferLength:`Zero];
 reg [PointerLength:`Zero] head_pointer;
 reg [PointerLength:`Zero] tail_pointer;
+//提交池
 reg [`DataLength:`Zero] commit_data;
 reg [`PcLength:`Zero] commit_pc;
 reg [RdLength:`Zero] commit_rd;
+reg [`OpcodeLength:`Zero] op;
 reg [`DataLength:`Zero] v1;
 reg [`DataLength:`Zero] v2;
 reg [`PcLength:`Zero] q1;
@@ -92,11 +96,13 @@ always @(posedge rst) begin
     commit_rd <= 0;
     tail_pointer <= 0;
     head_pointer <= 0;
+    op<= 0;
     for(i = 0 ; i < BufferLength ; ++i) begin
         status_storage[i] <= 0;
         rd_storage[i] <= 0;
         pc_storage[i] <= 0;
         data_storage[i] <= 0;
+        op_storage[i] <= 0;
     end
 end
 

@@ -2,7 +2,8 @@
 module slb 
 #(
     parameter SlbLength = 7,
-    parameter PointerLength = 2
+    parameter PointerLength = 2,
+    parameter OpcodeLength = 5
 )
 (
     input wire rst,
@@ -27,10 +28,12 @@ module slb
     output wire is_stall_to_rob,
     output wire is_finish_to_rob,
     output wire[`DataLength:`Zero] data_to_rob,
-    output wire[`DataLength:`Zero] pc_to_rob
+    output wire[`DataLength:`Zero] pc_to_rob,
+    output wire[`OpcodeLength:`Zero] op_to_fetcher
 );
 reg [`PcLength:`Zero] Addr [SlbLength:`Zero];
 reg [`DataLength:`Zero] Data [SlbLength:`Zero];
+reg [OpcodeLength:`Zero] Op[SlbLength:`Zero];
 reg [`PcLength:`Zero] Queue1 [SlbLength:`Zero];
 reg [`PcLength:`Zero] Queue2 [SlbLength:`Zero];
 reg [`DataLength:`Zero] Value1 [SlbLength:`Zero];
@@ -43,6 +46,7 @@ reg [`PcLength:`Zero] addr_fetch;
 reg [`DataLength:`Zero] data_fetch;
 reg [`PcLength:`Zero] pc_rob;
 reg [`DataLength:`Zero] data_rob;
+reg [`OpcodeLength:`Zero] op;
 reg is_stall;
 reg is_finish;
 reg is_empty;//向fetcher发送的
@@ -58,6 +62,7 @@ always @(posedge rst) begin
     is_finish <= 0;
     is_empty <= 0;
     is_store <= 0;
+    op <= 0;
     for (i = 0 ; i < SlbLength ; ++i ) begin
         Addr[i] <= 0;
         Data[i] <= 0;
@@ -65,6 +70,7 @@ always @(posedge rst) begin
         Queue2[i] <= 0 ;
         Value1[i] <= 0 ;
         Value2[i] <= 0 ;
+        Op[i] <= 0;
     end
 end
 endmodule

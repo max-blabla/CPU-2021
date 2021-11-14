@@ -31,6 +31,7 @@ module ft
 );
 reg [`PcLength:`Zero] Addr[FetcherLength:`Zero];
 reg [`DataLength:`Zero] Data[FetcherLength:`Zero];
+reg [`OpcodeLength:`Zero] Op[FetcherLength:`Zero];
 reg instr_status[FetcherLength:`Zero];
 reg store_status[FetcherLength:`Zero];
 reg [CounterLength:`Zero] cnt;
@@ -53,6 +54,7 @@ always @(posedge rst) begin
     for(i = 0 ; i < FetcherLength; ++i) begin
         Addr[i] <= 0;
         Data[i] <= 0;
+        Op[i] <= 0;
         instr_status[i] <= 0;
         store_status[i] <= 0;
     end
