@@ -59,39 +59,48 @@ always @(posedge clk) begin
 //再rd写入
     if(!is_empty_from_decoder) begin
             if(is_exception_from_rob) begin
-                if(rd_from_decoder != 0) begin
-                    RegValue[rd_from_decoder] <= data_from_rob;
+                    RegValue[rd_from_decoder] = data_from_rob;
+                    RegValue[0] = 0;
+                    for(i = 0 ;i < RegFileLength ; ++i) begin
+                        RegQueue[i] = 0;
+                    end
+                    is_empty = `True;
                 end
-                for(i = 0 ;i < RegFileLength ; ++i) begin
-                    RegQueue[i] <= 0;
-                end
-                is_empty <= `True;
-            end
             else begin
                 if(is_finish_from_rob) begin
                     //阻塞赋值 存疑
                     //if 语句并行情况 存疑
-                    if(rd_from_rob != 0) begin
-                        RegValue[rd_from_rob] <= data_from_rob;
-                    end
+                    RegValue[rd_from_rob] = data_from_rob;
+                    RegValue[0] = 0;
+                    //像这里就有问题
                     if(RegQueue[rd_from_rob] == pc_from_rob) begin
-                        RegQueue[rd_from_rob] <= 0;
+                        RegQueue[rd_from_rob] = 0;
+                    end
+                    if(!is_stall_from_rob) begin
+                        RegQueue[rd_from_decoder] = pc_from_decoder;
+                        RegQueue[0] = 0;
+                        v1 = RegValue[rs1_from_decoder];
+                        v2 = RegValue[rs2_from_decoder];
+                        q1 = RegQueue[rs1_from_decoder];
+                        q2 = RegQueue[rs2_from_decoder];
                     end
                 end
-                if(!is_stall_from_rob) begin
-                    if(rd_from_decoder != 0 ) begin
-                        RegQueue[rd_from_decoder] <= pc_from_decoder;
+                else begin
+                    if(!is_stall_from_rob) begin
+                        RegQueue[rd_from_decoder] = pc_from_decoder;
+                        RegQueue[0] = 0;
+                        v1 = RegValue[rs1_from_decoder];
+                        v2 = RegValue[rs2_from_decoder];
+                        q1 = RegQueue[rs1_from_decoder];
+                        q2 = RegQueue[rs2_from_decoder];
                     end
-                    v1 <= RegValue[rs1_from_decoder];
-                    v2 <= RegValue[rs2_from_decoder];
-                    q1 <= RegQueue[rs1_from_decoder];
-                    q2 <= RegQueue[rs2_from_decoder];
                 end
-                is_empty <= `False;
+              
+                is_empty = `False;
             end
         end
         else begin
-            is_empty <= `True;
+            is_empty = `True;
         end
 end
 assign v1_to_rob = v1;

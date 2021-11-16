@@ -18,8 +18,7 @@ module dc
     output  wire    [`PcLength:`Zero]       pc_to_reg,
     output  wire    [Rs1Length:`Zero]       rs1_to_reg,
     output  wire    [Rs2Length:`Zero]       rs2_to_reg,
-    output  wire    [`DataLength:`Zero]       imm_to_reg,
-    output  wire    [`OpcodeLength:`Zero]   op_to_reg
+    output  wire    [`DataLength:`Zero]       imm_to_reg
 );
 reg     [RdLength:`Zero]    rd;
 reg     [`PcLength:`Zero]   pc;
@@ -135,5 +134,4 @@ assign  rs2_to_reg  =   rs2;
 assign  rd_to_reg   =   rd;
 assign  imm_to_reg  =   imm;
 assign  is_empty_from_to_reg    =  is_empty_from_instr_queue;
-assign  op_to_reg = op;
 endmodule

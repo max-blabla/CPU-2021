@@ -1,5 +1,5 @@
 $date
-	Tue Nov 16 15:45:35 2021
+	Tue Nov 16 19:33:10 2021
 $end
 $version
 	Icarus Verilog
@@ -53,28 +53,14 @@ $var wire 32 A v1_from_rob [31:0] $end
 $var wire 32 B v1_to_alu [31:0] $end
 $var wire 32 C v2_from_rob [31:0] $end
 $var wire 32 D v2_to_alu [31:0] $end
-$var reg 1 E done $end
-$var reg 32 F icommit_data [31:0] $end
-$var reg 32 G icommit_pc [31:0] $end
-$var reg 32 H iimm [31:0] $end
-$var reg 1 I iis_commit $end
-$var reg 1 J iis_empty $end
-$var reg 1 K iis_exception $end
-$var reg 1 L iis_sl $end
-$var reg 32 M imm [31:0] $end
-$var reg 6 N iop [5:0] $end
-$var reg 32 O ipc [31:0] $end
-$var reg 32 P iq1 [31:0] $end
-$var reg 32 Q iq2 [31:0] $end
-$var reg 1 R is_stall $end
-$var reg 32 S iv1 [31:0] $end
-$var reg 32 T iv2 [31:0] $end
-$var reg 6 U op [5:0] $end
-$var reg 32 V pc [31:0] $end
-$var reg 32 W v1 [31:0] $end
-$var reg 32 X v2 [31:0] $end
-$var integer 32 Y i [31:0] $end
-$scope begin loop1 $end
+$var reg 32 E imm [31:0] $end
+$var reg 1 F is_stall $end
+$var reg 6 G op [5:0] $end
+$var reg 32 H pc [31:0] $end
+$var reg 32 I v1 [31:0] $end
+$var reg 32 J v2 [31:0] $end
+$var integer 32 K i [31:0] $end
+$scope begin loop $end
 $upscope $end
 $scope begin loop2 $end
 $upscope $end
@@ -83,27 +69,13 @@ $upscope $end
 $enddefinitions $end
 #0
 $dumpvars
-bx Y
-bx X
-bx W
-bx V
-bx U
-bx T
-bx S
-xR
-bx Q
-bx P
-bx O
-bx N
-bx M
-xL
-xK
-xJ
-xI
+bx K
+bx J
+bx I
 bx H
 bx G
-bx F
-xE
+xF
+bx E
 bx D
 b0 C
 bx B
@@ -142,66 +114,87 @@ bx "
 bx !
 $end
 #20000
-b0 G
-b0 F
-b0 O
-b0 H
-b0 N
-0J
-0L
-0I
-b0 Q
-b0 P
-b0 T
-b0 S
-0K
 b0 $
 b0 <
-b0 U
+b0 G
 b0 '
 b0 :
-b0 M
+b0 E
 b0 !
 b0 D
-b0 X
+b0 J
 b0 "
 b0 B
-b0 W
+b0 I
 0%
 0&
-0R
-0E
-b0 Y
+0F
+b1000 K
 14
 #25000
+0%
+0&
+0F
+b0 K
 1(
 #30000
 0(
 #35000
+b1 K
+0%
+0&
+0F
+b0 #
+b0 >
+b0 H
 1(
 #40000
 0(
 #45000
+0%
+0&
+0F
+b10 K
 1(
 #50000
 0(
 #55000
+0%
+0&
+0F
+b11 K
 1(
 #60000
 0(
 #65000
+0%
+0&
+0F
+b100 K
 1(
 #70000
 0(
 #75000
+0%
+0&
+0F
+b101 K
 1(
 #80000
 0(
 #85000
+0%
+0&
+0F
+b110 K
 1(
 #90000
 0(
 #95000
+0%
+0&
+0F
+b111 K
 1(
 #100000
 0(
