@@ -1,4 +1,65 @@
 `include "parameters.v"
+
+module tb_dc;        
+
+// dc Parameters
+parameter PERIOD     = 10;
+parameter Rs1Length  = 4;
+parameter Rs2Length  = 4;
+parameter RdLength   = 4;
+
+// dc Inputs
+reg   rst                                  = 0 ;
+reg   is_empty_from_instr_queue            = 0 ;
+reg   [`PcLength:`Zero]  pc_from_instr_queue = 0 ;
+reg   [`InstrLength:`Zero]  instr_from_instr_queue = 0 ;
+
+// dc Outputs
+wire  is_empty_to_reg                      ;
+wire  [RdLength:`Zero]  rd_to_reg          ;
+wire  [`PcLength:`Zero]  pc_to_reg         ;
+wire  [Rs1Length:`Zero]  rs1_to_reg        ;
+wire  [Rs2Length:`Zero]  rs2_to_reg        ;
+wire  [`DataLength:`Zero]  imm_to_reg      ;
+wire  [`OpcodeLength:`Zero]  op_to_reg     ;
+reg  [RdLength:`Zero] rd;
+
+dc #(
+    .Rs1Length ( Rs1Length ),
+    .Rs2Length ( Rs2Length ),
+    .RdLength  ( RdLength  ))
+ u_dc (
+    .rst                        ( rst                                              ),
+    .is_empty_from_instr_queue  ( is_empty_from_instr_queue                        ),
+    .pc_from_instr_queue        ( pc_from_instr_queue        [`PcLength:`Zero]     ),
+    .instr_from_instr_queue     ( instr_from_instr_queue     [`InstrLength:`Zero]  ),
+
+    .is_empty_to_reg            ( is_empty_to_reg                                  ),
+    .rd_to_reg                  ( rd_to_reg                  [RdLength:`Zero]      ),
+    .pc_to_reg                  ( pc_to_reg                  [`PcLength:`Zero]     ),
+    .rs1_to_reg                 ( rs1_to_reg                 [Rs1Length:`Zero]     ),
+    .rs2_to_reg                 ( rs2_to_reg                 [Rs2Length:`Zero]     ),
+    .imm_to_reg                 ( imm_to_reg                 [`DataLength:`Zero]   ),
+    .op_to_reg                  ( op_to_reg                  [`OpcodeLength:`Zero] )
+);
+initial
+begin
+    #0;
+    instr_from_instr_queue = 65463;
+    $display("000");
+    #10;
+    $display(rd_to_reg);
+    rd[4:0] = rd_to_reg[4:0];
+    $display(rd);
+    $display("000");
+    $dumpfile("test.vcd");
+    $dumpvars(0,tb_dc);
+    #10;
+end
+
+endmodule
+
+
 module dc
 #
 (
@@ -38,7 +99,10 @@ always @(posedge rst)begin
 end
 
 always @(instr_from_instr_queue) begin
+    $display(1);
     instr = instr_from_instr_queue;
+    $display(instr);
+    rs1 = 1;
     rs1 = instr[19:15];
     rs2 = 0;
     imm = 0;
@@ -127,6 +191,12 @@ always @(instr_from_instr_queue) begin
     end
     default:;
     endcase
+    $display(rd);
+    $display(op);
+    $display(rs1);
+    $display(rs2);
+    $display(imm);
+    $display(pc);
 end
 
 assign  pc_to_reg   =   pc;

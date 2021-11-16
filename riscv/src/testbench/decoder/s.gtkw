@@ -1,0 +1,20 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sun Nov 14 15:03:16 2021
+[*]
+[dumpfile] "D:\verilogCoding\RISCV-CPU\riscv\src\testbench\decoder\test.vcd"
+[dumpfile_mtime] "Sun Nov 14 15:02:19 2021"
+[dumpfile_size] 1580
+[savefile] "D:\verilogCoding\RISCV-CPU\riscv\src\testbench\decoder\s.gtkw"
+[timestart] 6
+[size] 1000 600
+[pos] -1 -1
+*0.291175 7 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 197
+[signals_width] 86
+[sst_expanded] 1
+[sst_vpaned_height] 153
+@22
+tb_dc.rd[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

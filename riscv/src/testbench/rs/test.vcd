@@ -1,0 +1,207 @@
+$date
+	Tue Nov 16 15:45:35 2021
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_rs $end
+$var wire 32 ! v2_to_alu [31:0] $end
+$var wire 32 " v1_to_alu [31:0] $end
+$var wire 32 # pc_to_alu [31:0] $end
+$var wire 6 $ op_to_alu [5:0] $end
+$var wire 1 % is_stall_to_rob $end
+$var wire 1 & is_stall_to_instr_queue $end
+$var wire 32 ' imm_to_alu [31:0] $end
+$var reg 1 ( clk $end
+$var reg 32 ) commit_data_from_rob [31:0] $end
+$var reg 32 * commit_pc_from_rob [31:0] $end
+$var reg 32 + imm_from_rob [31:0] $end
+$var reg 1 , is_commit_from_rob $end
+$var reg 1 - is_empty_from_rob $end
+$var reg 1 . is_exception_from_rob $end
+$var reg 1 / is_sl_from_rob $end
+$var reg 6 0 op_from_rob [5:0] $end
+$var reg 32 1 pc_from_rob [31:0] $end
+$var reg 32 2 q1_from_rob [31:0] $end
+$var reg 32 3 q2_from_rob [31:0] $end
+$var reg 1 4 rst_n $end
+$var reg 32 5 v1_from_rob [31:0] $end
+$var reg 32 6 v2_from_rob [31:0] $end
+$scope module u_rs $end
+$var wire 1 ( clk $end
+$var wire 32 7 commit_data_from_rob [31:0] $end
+$var wire 32 8 commit_pc_from_rob [31:0] $end
+$var wire 32 9 imm_from_rob [31:0] $end
+$var wire 32 : imm_to_alu [31:0] $end
+$var wire 1 , is_commit_from_rob $end
+$var wire 1 - is_empty_from_rob $end
+$var wire 1 . is_exception_from_rob $end
+$var wire 1 / is_sl_from_rob $end
+$var wire 1 & is_stall_to_instr_queue $end
+$var wire 1 % is_stall_to_rob $end
+$var wire 6 ; op_from_rob [5:0] $end
+$var wire 6 < op_to_alu [5:0] $end
+$var wire 32 = pc_from_rob [31:0] $end
+$var wire 32 > pc_to_alu [31:0] $end
+$var wire 32 ? q1_from_rob [31:0] $end
+$var wire 32 @ q2_from_rob [31:0] $end
+$var wire 1 4 rst $end
+$var wire 32 A v1_from_rob [31:0] $end
+$var wire 32 B v1_to_alu [31:0] $end
+$var wire 32 C v2_from_rob [31:0] $end
+$var wire 32 D v2_to_alu [31:0] $end
+$var reg 1 E done $end
+$var reg 32 F icommit_data [31:0] $end
+$var reg 32 G icommit_pc [31:0] $end
+$var reg 32 H iimm [31:0] $end
+$var reg 1 I iis_commit $end
+$var reg 1 J iis_empty $end
+$var reg 1 K iis_exception $end
+$var reg 1 L iis_sl $end
+$var reg 32 M imm [31:0] $end
+$var reg 6 N iop [5:0] $end
+$var reg 32 O ipc [31:0] $end
+$var reg 32 P iq1 [31:0] $end
+$var reg 32 Q iq2 [31:0] $end
+$var reg 1 R is_stall $end
+$var reg 32 S iv1 [31:0] $end
+$var reg 32 T iv2 [31:0] $end
+$var reg 6 U op [5:0] $end
+$var reg 32 V pc [31:0] $end
+$var reg 32 W v1 [31:0] $end
+$var reg 32 X v2 [31:0] $end
+$var integer 32 Y i [31:0] $end
+$scope begin loop1 $end
+$upscope $end
+$scope begin loop2 $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx Y
+bx X
+bx W
+bx V
+bx U
+bx T
+bx S
+xR
+bx Q
+bx P
+bx O
+bx N
+bx M
+xL
+xK
+xJ
+xI
+bx H
+bx G
+bx F
+xE
+bx D
+b0 C
+bx B
+b0 A
+b0 @
+b0 ?
+bx >
+b0 =
+bx <
+b0 ;
+bx :
+b0 9
+b0 8
+b0 7
+b0 6
+b0 5
+04
+b0 3
+b0 2
+b0 1
+b0 0
+0/
+0.
+0-
+0,
+b0 +
+b0 *
+b0 )
+0(
+bx '
+x&
+x%
+bx $
+bx #
+bx "
+bx !
+$end
+#20000
+b0 G
+b0 F
+b0 O
+b0 H
+b0 N
+0J
+0L
+0I
+b0 Q
+b0 P
+b0 T
+b0 S
+0K
+b0 $
+b0 <
+b0 U
+b0 '
+b0 :
+b0 M
+b0 !
+b0 D
+b0 X
+b0 "
+b0 B
+b0 W
+0%
+0&
+0R
+0E
+b0 Y
+14
+#25000
+1(
+#30000
+0(
+#35000
+1(
+#40000
+0(
+#45000
+1(
+#50000
+0(
+#55000
+1(
+#60000
+0(
+#65000
+1(
+#70000
+0(
+#75000
+1(
+#80000
+0(
+#85000
+1(
+#90000
+0(
+#95000
+1(
+#100000
+0(
