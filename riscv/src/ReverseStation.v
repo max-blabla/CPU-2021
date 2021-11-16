@@ -25,7 +25,6 @@ module rs
     output wire[`DataLength:`Zero] v2_to_alu,
     output wire[`DataLength:`Zero] imm_to_alu,
     output wire[`DataLength:`Zero] pc_to_alu,
-    output wire is_stall_to_instr_queue,
     output wire is_stall_to_rob
 );
 reg [`DataLength:`Zero] Value1[RsLength:`Zero];
@@ -82,14 +81,14 @@ always @(posedge clk) begin
             //先用rob的提交更新
             if(is_commit_from_rob) begin
                 for(i = 0 ; i <= RsLength ; ++i) begin
-                    if(is_busy[i] == `True && Queue1[i] == 0 && Queue2[i] == 0) begin
-                        if(Queue1[i] == commit_pc_from_rob)begin
-                            Queue1[i] = 0;
-                            Value1[i] = commit_data_from_rob;
+                    if(is_busy[i] == `True) begin
+                        if(Queue1[i] != 0 && Queue1[i] == commit_pc_from_rob)begin
+                            Queue1[i] <= 0;
+                            Value1[i] <= commit_data_from_rob;
                         end
-                        if(Queue2[i] == commit_pc_from_rob) begin
-                            Queue2[i] = 0;
-                            Value2[i] = commit_data_from_rob;
+                        if(Queue2[i] != 0 && Queue2[i] == commit_pc_from_rob) begin
+                            Queue2[i] <= 0;
+                            Value2[i] <= commit_data_from_rob;
                         end
                     end
                 end
@@ -133,7 +132,6 @@ assign v1_to_alu = v1;
 assign v2_to_alu = v2;
 assign imm_to_alu = imm;
 assign pc_to_alu = pc;
-assign is_stall_to_instr_queue = is_stall;
 assign is_stall_to_rob = is_stall;
 assign op_to_alu = op;
 endmodule

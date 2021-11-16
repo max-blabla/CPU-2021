@@ -125,7 +125,6 @@ always @(instr_from_instr_queue) begin
         3'b111 : op = `AND;
         endcase
     end
-    default:;
     endcase
 end
 

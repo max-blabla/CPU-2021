@@ -10,14 +10,12 @@ module iq
     input wire clk,
     input wire is_stall_from_rob,
     input wire is_exception_from_rob,
-    input wire is_hit_from_fc,
-    input wire is_stall_from_rs,
-    input wire is_stall_from_slb,
+    input wire is_empty_from_fc,
     input wire[`InstrLength:`Zero] instr_from_fc,
     output wire is_empty_to_dc,
     output wire[`InstrLength:`Zero] instr_to_dc,
     output wire[`PcLength:`Zero] pc_to_dc,
-    
+    output wire is_stall_to_fc,
     input wire[`PcLength:`Zero] pc_from_rob,
     output wire[`PcLength:`Zero] pc_to_fc
 //锁存与保持？
@@ -28,6 +26,7 @@ reg [PointerStorage:`Zero] tail_pointer;
 reg [`InstrLength:`Zero] instr_queue[QueueStorage:`Zero];
 reg [`PcLength:`Zero] pc_queue[QueueStorage:`Zero];
 
+reg is_stall;//给fc的
 reg is_empty;//给dc的
 reg [`PcLength:`Zero] pc_dc;
 reg [`PcLength:`Zero] pc_fc;//指向尾部pc, 尾部即为传给fetcher的
@@ -44,8 +43,6 @@ always @(posedge rst) begin
     end
     is_empty <=  0;
 end
-
-
 always @(posedge clk) begin
   
 
@@ -64,33 +61,39 @@ always @(posedge clk) begin
           //先接受上个周期发的请求
     //若满,则不接收
     //否则 接收,尾+1并且pc自动+32
-        if((head_pointer != tail_pointer + 1) && is_hit_from_fc) begin //没满//且hit到了
-            instr_queue[tail_pointer] = instr_from_fc;
-            tail_pointer = tail_pointer + 1;
-            pc_fc = pc_fc + `PcLength;
+        if((head_pointer != tail_pointer + 1) ) begin //没满//且hit到了
+            if(is_empty_from_fc == `False) begin
+                instr_queue[tail_pointer] <= instr_from_fc;
+                tail_pointer <= tail_pointer + 1;
+                pc_fc <= pc_fc + `PcLength;
+            end
+            is_stall <= `False;
+        end
+        else begin
+            is_stall <= `True;
         end
     //先发送到解码器
     //若头等于尾则说明空,则发送空信息
     //以及stall情况
     //反之头进1
-        if(is_stall_from_rob == `False && is_stall_from_rs == `False && is_stall_from_slb == `False ) begin
+        if(is_stall_from_rob == `False ) begin
             if(head_pointer == tail_pointer) begin
-                is_empty = `True;
+                is_empty <= `True;
             end
             else begin
-                pc_dc = pc_queue[head_pointer];
-                instr_dc = instr_queue[head_pointer];
-                is_empty = `False;
-                head_pointer = head_pointer + 1;
+                pc_dc <= pc_queue[head_pointer];
+                instr_dc <= instr_queue[head_pointer];
+                is_empty <= `False;
+                head_pointer <= head_pointer + 1;
             end
         end
         else begin 
-            is_empty = `True;
+            is_empty <= `True;
         end 
     //再发送尾到fetcher，这个组合做
     end
 end
-
+assign is_stall_to_fc = is_stall;
 assign is_empty_to_decoder = is_empty;
 assign pc_to_fetcher = pc_fc;
 assign pc_to_decoder = pc_dc;
