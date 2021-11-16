@@ -1,0 +1,77 @@
+$date
+	Sun Nov 14 23:12:56 2021
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module tb_dc $end
+$var wire 1 ! is_empty_to_reg $end
+$var wire 5 " rs2_to_reg [4:0] $end
+$var wire 5 # rs1_to_reg [4:0] $end
+$var wire 5 $ rd_to_reg [4:0] $end
+$var wire 32 % pc_to_reg [31:0] $end
+$var wire 6 & op_to_reg [5:0] $end
+$var wire 32 ' imm_to_reg [31:0] $end
+$var reg 32 ( instr_from_instr_queue [31:0] $end
+$var reg 1 ) is_empty_from_instr_queue $end
+$var reg 32 * pc_from_instr_queue [31:0] $end
+$var reg 5 + rd [4:0] $end
+$var reg 1 , rst $end
+$scope module u_dc $end
+$var wire 32 - imm_to_reg [31:0] $end
+$var wire 32 . instr_from_instr_queue [31:0] $end
+$var wire 1 ) is_empty_from_instr_queue $end
+$var wire 1 / is_empty_from_to_reg $end
+$var wire 1 ! is_empty_to_reg $end
+$var wire 6 0 op_to_reg [5:0] $end
+$var wire 32 1 pc_from_instr_queue [31:0] $end
+$var wire 32 2 pc_to_reg [31:0] $end
+$var wire 5 3 rd_to_reg [4:0] $end
+$var wire 5 4 rs1_to_reg [4:0] $end
+$var wire 5 5 rs2_to_reg [4:0] $end
+$var wire 1 , rst $end
+$var reg 32 6 imm [31:0] $end
+$var reg 32 7 instr [31:0] $end
+$var reg 6 8 op [5:0] $end
+$var reg 32 9 pc [31:0] $end
+$var reg 5 : rd [4:0] $end
+$var reg 5 ; rs1 [4:0] $end
+$var reg 5 < rs2 [4:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#10
+$dumpvars
+b0 <
+b0 ;
+b11111 :
+b0 9
+b0 8
+b1111111110110111 7
+b1111 6
+b0 5
+b0 4
+b11111 3
+b0 2
+b0 1
+b0 0
+0/
+b1111111110110111 .
+b1111 -
+0,
+b11111 +
+b0 *
+0)
+b1111111110110111 (
+b1111 '
+b0 &
+b0 %
+b11111 $
+b0 #
+b0 "
+z!
+$end
+#20

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #! /c/iverilog/bin/vvp
 :ivl_version "12.0 (devel)" "(s20150603-965-g55e06db6)";
 :ivl_delay_selection "TYPICAL";
@@ -493,3 +494,500 @@ T_4 ;
     "<interactive>";
     "trs.v";
     "./ReverseStation.v";
+=======
+#! /c/iverilog/bin/vvp
+:ivl_version "12.0 (devel)" "(s20150603-965-g55e06db6)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "D:\iverilog\lib\ivl\system.vpi";
+:vpi_module "D:\iverilog\lib\ivl\vhdl_sys.vpi";
+:vpi_module "D:\iverilog\lib\ivl\vhdl_textio.vpi";
+:vpi_module "D:\iverilog\lib\ivl\v2005_math.vpi";
+:vpi_module "D:\iverilog\lib\ivl\va_math.vpi";
+S_00000000008c0c20 .scope module, "tb_rs" "tb_rs" 2 5;
+ .timescale -9 -12;
+P_00000000009671a0 .param/l "PERIOD" 0 2 8, +C4<00000000000000000000000000001010>;
+P_00000000009671d8 .param/l "RsLength" 0 2 9, +C4<00000000000000000000000000000111>;
+v0000000000925450_0 .var "clk", 0 0;
+v0000000000926490_0 .var "commit_data_from_rob", 31 0;
+v0000000000926210_0 .var "commit_pc_from_rob", 31 0;
+v0000000000925bd0_0 .var "imm_from_rob", 31 0;
+v00000000009263f0_0 .net "imm_to_alu", 31 0, L_0000000000928c50;  1 drivers
+v0000000000926f30_0 .var "is_commit_from_rob", 0 0;
+v00000000009262b0_0 .var "is_empty_from_rob", 0 0;
+v0000000000926350_0 .var "is_exception_from_rob", 0 0;
+v0000000000926170_0 .var "is_sl_from_rob", 0 0;
+v0000000000926990_0 .net "is_stall_to_instr_queue", 0 0, L_0000000000929970;  1 drivers
+v0000000000925950_0 .net "is_stall_to_rob", 0 0, L_00000000009292e0;  1 drivers
+v0000000000925130_0 .var "op_from_rob", 5 0;
+v0000000000926530_0 .net "op_to_alu", 5 0, L_0000000000928f60;  1 drivers
+v0000000000925c70_0 .var "pc_from_rob", 31 0;
+v0000000000926670_0 .net "pc_to_alu", 31 0, L_0000000000928d30;  1 drivers
+v0000000000925e50_0 .var "q1_from_rob", 31 0;
+v0000000000925770_0 .var "q2_from_rob", 31 0;
+v0000000000925f90_0 .var "rst_n", 0 0;
+v0000000000925db0_0 .var "v1_from_rob", 31 0;
+v00000000009259f0_0 .net "v1_to_alu", 31 0, L_00000000008b8680;  1 drivers
+v0000000000925d10_0 .var "v2_from_rob", 31 0;
+v0000000000925590_0 .net "v2_to_alu", 31 0, L_0000000000929270;  1 drivers
+S_00000000008c0db0 .scope module, "u_rs" "rs" 2 47, 3 2 0, S_00000000008c0c20;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "rst";
+    .port_info 1 /INPUT 1 "clk";
+    .port_info 2 /INPUT 1 "is_empty_from_rob";
+    .port_info 3 /INPUT 1 "is_sl_from_rob";
+    .port_info 4 /INPUT 1 "is_exception_from_rob";
+    .port_info 5 /INPUT 1 "is_commit_from_rob";
+    .port_info 6 /INPUT 6 "op_from_rob";
+    .port_info 7 /INPUT 32 "v1_from_rob";
+    .port_info 8 /INPUT 32 "v2_from_rob";
+    .port_info 9 /INPUT 32 "q1_from_rob";
+    .port_info 10 /INPUT 32 "q2_from_rob";
+    .port_info 11 /INPUT 32 "imm_from_rob";
+    .port_info 12 /INPUT 32 "pc_from_rob";
+    .port_info 13 /INPUT 32 "commit_data_from_rob";
+    .port_info 14 /INPUT 32 "commit_pc_from_rob";
+    .port_info 15 /OUTPUT 6 "op_to_alu";
+    .port_info 16 /OUTPUT 32 "v1_to_alu";
+    .port_info 17 /OUTPUT 32 "v2_to_alu";
+    .port_info 18 /OUTPUT 32 "imm_to_alu";
+    .port_info 19 /OUTPUT 32 "pc_to_alu";
+    .port_info 20 /OUTPUT 1 "is_stall_to_instr_queue";
+    .port_info 21 /OUTPUT 1 "is_stall_to_rob";
+P_000000000089dc90 .param/l "RsLength" 0 3 4, +C4<00000000000000000000000000000111>;
+L_00000000008b8680 .functor BUFZ 32, v0000000000925310_0, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>;
+L_0000000000929270 .functor BUFZ 32, v00000000009267b0_0, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>;
+L_0000000000928c50 .functor BUFZ 32, v00000000008cb960_0, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>;
+L_0000000000928d30 .functor BUFZ 32, v00000000008cb780_0, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>, C4<00000000000000000000000000000000>;
+L_0000000000929970 .functor BUFZ 1, v00000000008cb460_0, C4<0>, C4<0>, C4<0>;
+L_00000000009292e0 .functor BUFZ 1, v00000000008cb460_0, C4<0>, C4<0>, C4<0>;
+L_0000000000928f60 .functor BUFZ 6, v00000000008cbb40_0, C4<000000>, C4<000000>, C4<000000>;
+v0000000000966f60 .array "Imm", 0 7, 31 0;
+v00000000008a4200 .array "Op", 0 7, 5 0;
+v00000000008a42a0 .array "Pc", 0 7, 31 0;
+v00000000008a4340 .array "Queue1", 0 7, 31 0;
+v00000000008a43e0 .array "Queue2", 0 7, 31 0;
+v00000000008cb320 .array "Value1", 0 7, 31 0;
+v00000000008cb000 .array "Value2", 0 7, 31 0;
+v00000000008cb1e0_0 .net "clk", 0 0, v0000000000925450_0;  1 drivers
+v00000000008cb0a0_0 .net "commit_data_from_rob", 31 0, v0000000000926490_0;  1 drivers
+v00000000008cbd20_0 .net "commit_pc_from_rob", 31 0, v0000000000926210_0;  1 drivers
+v00000000008cb500_0 .var/i "i", 31 0;
+v00000000008cb960_0 .var "imm", 31 0;
+v00000000008cb140_0 .net "imm_from_rob", 31 0, v0000000000925bd0_0;  1 drivers
+v00000000008cb3c0_0 .net "imm_to_alu", 31 0, L_0000000000928c50;  alias, 1 drivers
+v00000000008cb280 .array "is_busy", 0 7, 0 0;
+v00000000008cb820_0 .net "is_commit_from_rob", 0 0, v0000000000926f30_0;  1 drivers
+v00000000008cbe60_0 .net "is_empty_from_rob", 0 0, v00000000009262b0_0;  1 drivers
+v00000000008caf60_0 .net "is_exception_from_rob", 0 0, v0000000000926350_0;  1 drivers
+v00000000008cbaa0_0 .net "is_sl_from_rob", 0 0, v0000000000926170_0;  1 drivers
+v00000000008cb460_0 .var "is_stall", 0 0;
+v00000000008cb8c0_0 .net "is_stall_to_instr_queue", 0 0, L_0000000000929970;  alias, 1 drivers
+v00000000008cb5a0_0 .net "is_stall_to_rob", 0 0, L_00000000009292e0;  alias, 1 drivers
+v00000000008cbb40_0 .var "op", 5 0;
+v00000000008cb640_0 .net "op_from_rob", 5 0, v0000000000925130_0;  1 drivers
+v00000000008cb6e0_0 .net "op_to_alu", 5 0, L_0000000000928f60;  alias, 1 drivers
+v00000000008cb780_0 .var "pc", 31 0;
+v00000000008cba00_0 .net "pc_from_rob", 31 0, v0000000000925c70_0;  1 drivers
+v00000000008cbbe0_0 .net "pc_to_alu", 31 0, L_0000000000928d30;  alias, 1 drivers
+v00000000008cbc80_0 .net "q1_from_rob", 31 0, v0000000000925e50_0;  1 drivers
+v00000000008cbdc0_0 .net "q2_from_rob", 31 0, v0000000000925770_0;  1 drivers
+v00000000009254f0_0 .net "rst", 0 0, v0000000000925f90_0;  1 drivers
+v0000000000925310_0 .var "v1", 31 0;
+v00000000009256d0_0 .net "v1_from_rob", 31 0, v0000000000925db0_0;  1 drivers
+v0000000000925090_0 .net "v1_to_alu", 31 0, L_00000000008b8680;  alias, 1 drivers
+v00000000009267b0_0 .var "v2", 31 0;
+v00000000009253b0_0 .net "v2_from_rob", 31 0, v0000000000925d10_0;  1 drivers
+v0000000000926df0_0 .net "v2_to_alu", 31 0, L_0000000000929270;  alias, 1 drivers
+E_000000000089e4d0 .event posedge, v00000000008cb1e0_0;
+E_000000000089dd10 .event posedge, v00000000009254f0_0;
+S_00000000008a3ee0 .scope begin, "loop" "loop" 3 97, 3 97 0, S_00000000008c0db0;
+ .timescale 0 0;
+S_00000000008a4070 .scope begin, "loop2" "loop2" 3 111, 3 111 0, S_00000000008c0db0;
+ .timescale 0 0;
+    .scope S_00000000008c0db0;
+T_0 ;
+    %wait E_000000000089dd10;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v00000000008cb460_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v0000000000925310_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v00000000009267b0_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v00000000008cb960_0, 0;
+    %pushi/vec4 0, 0, 6;
+    %assign/vec4 v00000000008cbb40_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+T_0.0 ;
+    %load/vec4 v00000000008cb500_0;
+    %cmpi/s 7, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_0.1, 5;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb320, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb000, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4340, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a43e0, 0, 4;
+    %pushi/vec4 0, 0, 1;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb280, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a42a0, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v0000000000966f60, 0, 4;
+    ; show_stmt_assign_vector: Get l-value for compressed += operand
+    %load/vec4 v00000000008cb500_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+    %jmp T_0.0;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+    .scope S_00000000008c0db0;
+T_1 ;
+    %wait E_000000000089e4d0;
+    %load/vec4 v00000000008caf60_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_1.0, 8;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v00000000008cb460_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v0000000000925310_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v00000000009267b0_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %assign/vec4 v00000000008cb960_0, 0;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+T_1.2 ;
+    %load/vec4 v00000000008cb500_0;
+    %cmpi/s 7, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_1.3, 5;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb320, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb000, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4340, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a43e0, 0, 4;
+    %pushi/vec4 0, 0, 1;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb280, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a42a0, 0, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v0000000000966f60, 0, 4;
+    %pushi/vec4 0, 0, 6;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4200, 0, 4;
+    ; show_stmt_assign_vector: Get l-value for compressed += operand
+    %load/vec4 v00000000008cb500_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+    %jmp T_1.2;
+T_1.3 ;
+    %jmp T_1.1;
+T_1.0 ;
+    %load/vec4 v00000000008cbe60_0;
+    %pushi/vec4 0, 0, 1;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %load/vec4 v00000000008cbaa0_0;
+    %pushi/vec4 0, 0, 1;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %and;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_1.4, 8;
+    %load/vec4 v00000000008cb820_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_1.6, 8;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+T_1.8 ;
+    %load/vec4 v00000000008cb500_0;
+    %cmpi/s 7, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_1.9, 5;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008cb280, 4;
+    %pushi/vec4 1, 0, 1;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a4340, 4;
+    %pushi/vec4 0, 0, 32;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %and;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a43e0, 4;
+    %pushi/vec4 0, 0, 32;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %and;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_1.10, 8;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a4340, 4;
+    %load/vec4 v00000000008cbd20_0;
+    %cmp/e;
+    %jmp/0xz  T_1.12, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4340, 0, 4;
+    %load/vec4 v00000000008cb0a0_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb320, 0, 4;
+T_1.12 ;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a43e0, 4;
+    %load/vec4 v00000000008cbd20_0;
+    %cmp/e;
+    %jmp/0xz  T_1.14, 4;
+    %pushi/vec4 0, 0, 32;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a43e0, 0, 4;
+    %load/vec4 v00000000008cb0a0_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb000, 0, 4;
+T_1.14 ;
+T_1.10 ;
+    ; show_stmt_assign_vector: Get l-value for compressed += operand
+    %load/vec4 v00000000008cb500_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+    %jmp T_1.8;
+T_1.9 ;
+T_1.6 ;
+    %fork t_1, S_00000000008a3ee0;
+    %jmp t_0;
+    .scope S_00000000008a3ee0;
+t_1 ;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+T_1.16 ;
+    %load/vec4 v00000000008cb500_0;
+    %cmpi/s 7, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_1.17, 5;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008cb280, 4;
+    %pushi/vec4 1, 0, 1;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a4340, 4;
+    %pushi/vec4 0, 0, 32;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %and;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a43e0, 4;
+    %pushi/vec4 0, 0, 32;
+    %cmp/e;
+    %flag_get/vec4 4;
+    %and;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_1.18, 8;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008cb320, 4;
+    %store/vec4 v0000000000925310_0, 0, 32;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008cb000, 4;
+    %store/vec4 v00000000009267b0_0, 0, 32;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v0000000000966f60, 4;
+    %store/vec4 v00000000008cb960_0, 0, 32;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a42a0, 4;
+    %store/vec4 v00000000008cb780_0, 0, 32;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008a4200, 4;
+    %store/vec4 v00000000008cbb40_0, 0, 6;
+    %disable S_00000000008a3ee0;
+T_1.18 ;
+    ; show_stmt_assign_vector: Get l-value for compressed += operand
+    %load/vec4 v00000000008cb500_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+    %jmp T_1.16;
+T_1.17 ;
+    %end;
+    .scope S_00000000008c0db0;
+t_0 %join;
+    %fork t_3, S_00000000008a4070;
+    %jmp t_2;
+    .scope S_00000000008a4070;
+t_3 ;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v00000000008cb460_0, 0, 1;
+    %vpi_call 3 113 "$display", "out" {0 0 0};
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+T_1.20 ;
+    %load/vec4 v00000000008cb500_0;
+    %cmpi/s 7, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_1.21, 5;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %load/vec4a v00000000008cb280, 4;
+    %cmpi/e 0, 0, 1;
+    %jmp/0xz  T_1.22, 4;
+    %vpi_call 3 116 "$display", v00000000008cb500_0 {0 0 0};
+    %load/vec4 v00000000008cba00_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a42a0, 0, 4;
+    %load/vec4 v00000000008cb140_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v0000000000966f60, 0, 4;
+    %load/vec4 v00000000009256d0_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb320, 0, 4;
+    %load/vec4 v00000000009253b0_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008cb000, 0, 4;
+    %load/vec4 v00000000008cbc80_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4340, 0, 4;
+    %load/vec4 v00000000008cbdc0_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a43e0, 0, 4;
+    %load/vec4 v00000000008cb640_0;
+    %ix/getv/s 3, v00000000008cb500_0;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v00000000008a4200, 0, 4;
+    %pushi/vec4 1, 0, 1;
+    %ix/getv/s 4, v00000000008cb500_0;
+    %store/vec4a v00000000008cb280, 4, 0;
+    %vpi_call 3 125 "$display", &A<v00000000008cb280, v00000000008cb500_0 > {0 0 0};
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v00000000008cb460_0, 0, 1;
+    %disable S_00000000008a4070;
+T_1.22 ;
+    ; show_stmt_assign_vector: Get l-value for compressed += operand
+    %load/vec4 v00000000008cb500_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v00000000008cb500_0, 0, 32;
+    %jmp T_1.20;
+T_1.21 ;
+    %vpi_call 3 130 "$display", &A<v00000000008cb280, v00000000008cb500_0 > {0 0 0};
+    %end;
+    .scope S_00000000008c0db0;
+t_2 %join;
+    %vpi_call 3 132 "$display", &A<v00000000008cb280, v00000000008cb500_0 > {0 0 0};
+T_1.4 ;
+T_1.1 ;
+    %jmp T_1;
+    .thread T_1;
+    .scope S_00000000008c0c20;
+T_2 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0000000000925f90_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0000000000925450_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v00000000009262b0_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0000000000926170_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0000000000926350_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0000000000926f30_0, 0, 1;
+    %pushi/vec4 0, 0, 6;
+    %store/vec4 v0000000000925130_0, 0, 6;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925db0_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925d10_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925e50_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925770_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925bd0_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000925c70_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000926490_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0000000000926210_0, 0, 32;
+    %end;
+    .thread T_2;
+    .scope S_00000000008c0c20;
+T_3 ;
+    %delay 20000, 0;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0000000000925f90_0, 0, 1;
+T_3.0 ;
+    %delay 5000, 0;
+    %load/vec4 v0000000000925450_0;
+    %inv;
+    %store/vec4 v0000000000925450_0, 0, 1;
+    %jmp T_3.0;
+    %end;
+    .thread T_3;
+    .scope S_00000000008c0c20;
+T_4 ;
+    %vpi_call 2 75 "$dumpfile", "test.vcd" {0 0 0};
+    %vpi_call 2 76 "$dumpvars", 32'sb00000000000000000000000000000000, S_00000000008c0c20 {0 0 0};
+    %delay 100000, 0;
+    %vpi_call 2 78 "$finish" {0 0 0};
+    %end;
+    .thread T_4;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "trs.v";
+    "./ReverseStation.v";
+>>>>>>> f0186ad8f001956fa1504d6ecb233fb822dce3a0
