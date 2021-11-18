@@ -74,7 +74,13 @@ always @(posedge clk) begin
             cnt <= 0;
             head_pointer <= head_pointer + 1;
         end
-        else if(is_receive_from_slb == `True && instr_status[head_pointer] == `False) begin
+        else if(is_receive_from_slb == `True && instr_status[head_pointer] == `False && store_status[head_pointer] == `False) begin
+            is_finish <= `False;
+            is_start <= `False;
+            cnt <= 0;
+            head_pointer <= head_pointer + 1;
+        end
+        else if(instr_status[head_pointer] == `False && store_status[head_pointer] == `False) begin
             is_finish <= `False;
             is_start <= `False;
             cnt <= 0;

@@ -70,5 +70,6 @@ always @(op_from_rs) begin
 end
 assign pc_to_rob = pc;
 assign data_to_rob = data;
+assign jpc_to_rob = jpc;
 assign is_finish_to_rob = is_finish; 
 endmodule
