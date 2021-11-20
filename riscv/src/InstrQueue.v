@@ -24,6 +24,7 @@ module iq
     output wire[`PcLength:`Zero] pc_to_fc
 //锁存与保持？
 );
+
 reg [PointerStorage:`Zero] head_pointer;
 reg [PointerStorage:`Zero] tail_pointer;
 reg [`InstrLength:`Zero] instr_queue[QueueStorage:`Zero];
@@ -42,12 +43,13 @@ always @(posedge rst) begin
     head_pointer <=  0;
     tail_pointer <=  0;
     store_pointer <= 0;
+    instr_dc <= 0;
     for(i =  0 ; i <= QueueStorage ; ++i ) begin
         instr_queue[i] <=  0;
         pc_queue[i] <= 0;
     end
-    is_empty_dc <=  0;
-    is_empty_fc <= 0;
+    is_empty_dc <=  `True;
+    is_empty_fc <= `False;
 end
 always @(posedge clk) begin
   
@@ -62,6 +64,7 @@ always @(posedge clk) begin
         head_pointer <= 0;
         tail_pointer <= 0;
         pc_fc <= pc_from_rob;
+        pc_queue[0] <= pc_from_rob;
         is_empty_dc <= `True;
         is_empty_fc <= `False;
     end
@@ -69,20 +72,24 @@ always @(posedge clk) begin
           //先接受上个周期发的请求
     //若满,则不接收
     //否则 接收,尾+1并且pc自动+32
-        if((head_pointer != tail_pointer + 1) ) begin //没满//且hit到了
+        if((store_pointer != tail_pointer) ) begin //没满//且hit到了
             if(is_finish_from_fc == `True) begin
                 instr_queue[tail_pointer] <= instr_from_fc;
                 tail_pointer <= tail_pointer + 1; 
             end
         end
         //如果不堵住就发送
-        if(is_stall_from_fc == `False && head_pointer != store_pointer + 1) begin
+        if((head_pointer != store_pointer + 4'b0001)) begin
+             if(is_stall_from_fc == `False) begin
                 pc_fc <= pc_fc + 4;
+                pc_queue[store_pointer+1] <= pc_fc+4;
                 store_pointer <= store_pointer+1;
                 is_empty_fc <= `False; 
-            end
-            else begin
+             end
+        end
+        else begin
             is_empty_fc <= `True;
+        //    head_pointer <= head_pointer + 1;
         end
             //先发送到解码器
     //若头等于尾则说明空,则发送空信息

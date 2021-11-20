@@ -2,6 +2,7 @@
 // port modification allowed for debugging purposes
 `include "InstrQueue.v"
 `include "Fetcher.v"
+`include "decoder.v"
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -35,22 +36,38 @@ wire is_finish_from_fc_to_iq;
 wire is_instr_from_fc_to_iq;
 wire [`DataLength:`Zero] addr_from_iq_to_fc; 
 wire [`DataLength:`Zero] instr_from_fc_to_iq;
+wire [`PcLength:`Zero] pc_from_iq_to_dc;
 wire [1:0] cnt_from_fc_to_fc;
+wire is_empty_from_iq_to_dc;
+wire [`DataLength:`Zero]instr_from_iq_to_dc;
 reg true = `True;
+reg false = `False;
+dc mdc(
+    .rst(rst_in),
+    .is_empty_from_instr_queue(is_empty_from_iq_to_dc),
+    .pc_from_instr_queue(pc_from_iq_to_dc),
+    .instr_from_instr_queue(instr_from_iq_to_dc),
+    .is_empty_to_reg(),
+    .rd_to_reg(),
+    .pc_to_reg(),
+    .rs1_to_reg(),
+    .rs2_to_reg(),
+    .imm_to_reg()
+);
 iq miq(
     .rst                                     ( rst_in                                      ),
     .clk                                     ( clk_in                                   ),
-    .is_stall_from_rob                       (                       ),
+    .is_stall_from_rob                       ( false             ),
     .is_exception_from_rob                   (                    ),
     .is_stall_from_fc                        ( is_stall_from_fc_to_iq                         ),
     .is_finish_from_fc                       ( is_finish_from_fc_to_iq                        ),
     .is_instr_from_fc                        ( is_instr_from_fc_to_iq                         ),
     .pc_from_rob                             (                               ),
     .instr_from_fc                           ( instr_from_fc_to_iq                            ),
-    .is_empty_to_dc                          (                            ),
+    .is_empty_to_dc                          ( is_empty_from_iq_to_dc     ),
     .is_empty_to_fc                          ( is_empty_from_iq_to_fc                   ),
-    .instr_to_dc                             (                              ),
-    .pc_to_dc                                (                                  ),
+    .instr_to_dc                             ( instr_from_iq_to_dc      ),
+    .pc_to_dc                                ( pc_from_iq_to_dc           ),
     .is_receive_to_fc                        ( is_receive_from_iq_to_fc                         ),
     .pc_to_fc                                ( addr_from_iq_to_fc                                 )
 );

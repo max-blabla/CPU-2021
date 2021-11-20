@@ -4,7 +4,10 @@ module fc
 (
     parameter FetcherLength = 31,
     parameter PointerLength = 4,
-    parameter CounterLength = 1
+    parameter CounterLength = 1,
+    parameter PointerOne = 5'b00001,
+    parameter PointerTwo = 5'b00010,
+    parameter PointerThree = 5'b00011
 )
 (
     input rst,
@@ -31,7 +34,8 @@ module fc
     output wire [`UnsignedCharLength:`Zero] data_to_ram,
   //  output wire [`PcLength:`Zero] pc_to_slb,
     output wire [`DataLength:`Zero] data_to_slb,
-    output wire [`DataLength:`Zero] data_to_iq
+    output wire [`DataLength:`Zero] data_to_iq,
+    output wire [`DataLength:`Zero] addr_to_iq
 );
 reg [`PcLength:`Zero] Addr[FetcherLength:`Zero];
 reg [`DataLength:`Zero] Data[FetcherLength:`Zero];
@@ -44,12 +48,16 @@ reg [PointerLength:`Zero] tail_pointer;
 reg [`DataLength:`Zero] addr;
 reg [`UnsignedCharLength:`Zero] char;
 reg [`DataLength:`Zero] data;
+reg [`DataLength:`Zero] addr_iq;
 reg is_stall;
 reg is_past;
 reg is_start;
 reg is_instr;
 reg is_store;
 reg is_finish;
+reg test;
+reg [`DataLength:`Zero] testAddr;
+reg [`UnsignedCharLength:`Zero] testchar;
 integer i;
 always @(posedge rst) begin
     is_stall <= 0;
@@ -100,15 +108,16 @@ always @(posedge clk) begin
                 end
                 else begin
                     case (cnt)
-                    2'b00:Data[head_pointer][31:24]= data_from_ram;
-                    2'b01:Data[head_pointer][23:16]= data_from_ram; 
-                    2'b10:Data[head_pointer][15:8]= data_from_ram;
-                    2'b11:Data[head_pointer][7:0]= data_from_ram;
+                    2'b00:Data[head_pointer][7:0]= data_from_ram;
+                    2'b01:Data[head_pointer][15:8]= data_from_ram; 
+                    2'b10:Data[head_pointer][23:16]= data_from_ram;
+                    2'b11:Data[head_pointer][31:24]= data_from_ram;
                     endcase
                 end
                 if(cnt == 2'b11) begin
                     is_instr <= instr_status[head_pointer];
                     data <= Data[head_pointer];
+                    addr_iq <= Addr[head_pointer];
                     is_finish <= `True;
                     is_past <= `False;
                 end
@@ -116,7 +125,7 @@ always @(posedge clk) begin
             end
         end
     end
-    if(head_pointer != tail_pointer + 3 && head_pointer != tail_pointer + 2 && head_pointer != tail_pointer + 1) begin
+    if(head_pointer != tail_pointer + PointerOne && head_pointer != tail_pointer + PointerTwo && head_pointer != tail_pointer + PointerThree) begin
         is_stall <= `False;
         if(is_empty_from_iq ==`False && is_empty_from_slb == `False) begin
             Addr[tail_pointer] <= addr_from_slb;
@@ -136,6 +145,7 @@ always @(posedge clk) begin
             tail_pointer <= tail_pointer + 1;      
         end
         else if(is_empty_from_iq ==`False && is_empty_from_slb == `True)begin
+            testAddr <= addr_from_iq;
             Addr[tail_pointer] <= addr_from_iq;
             instr_status[tail_pointer] <= `True;
             store_status[tail_pointer] <= `False;
@@ -157,4 +167,5 @@ assign addr_to_ram = addr;
 assign data_to_ram = char;
 assign data_to_slb = data;
 assign data_to_iq = data;
+assign addr_to_iq = addr_iq;
 endmodule

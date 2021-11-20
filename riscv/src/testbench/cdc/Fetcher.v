@@ -4,7 +4,10 @@ module fc
 (
     parameter FetcherLength = 31,
     parameter PointerLength = 4,
-    parameter CounterLength = 1
+    parameter CounterLength = 1,
+    parameter PointerOne = 5'b00001,
+    parameter PointerTwo = 5'b00010,
+    parameter PointerThree = 5'b00011
 )
 (
     input rst,
@@ -105,10 +108,10 @@ always @(posedge clk) begin
                 end
                 else begin
                     case (cnt)
-                    2'b00:Data[head_pointer][31:24]= data_from_ram;
-                    2'b01:Data[head_pointer][23:16]= data_from_ram; 
-                    2'b10:Data[head_pointer][15:8]= data_from_ram;
-                    2'b11:Data[head_pointer][7:0]= data_from_ram;
+                    2'b00:Data[head_pointer][7:0]= data_from_ram;
+                    2'b01:Data[head_pointer][15:8]= data_from_ram; 
+                    2'b10:Data[head_pointer][23:16]= data_from_ram;
+                    2'b11:Data[head_pointer][31:24]= data_from_ram;
                     endcase
                 end
                 if(cnt == 2'b11) begin
@@ -122,7 +125,7 @@ always @(posedge clk) begin
             end
         end
     end
-    if(head_pointer != tail_pointer + 3 && head_pointer != tail_pointer + 2 && head_pointer != tail_pointer + 1) begin
+    if(head_pointer != tail_pointer + PointerOne && head_pointer != tail_pointer + PointerTwo && head_pointer != tail_pointer + PointerThree) begin
         is_stall <= `False;
         if(is_empty_from_iq ==`False && is_empty_from_slb == `False) begin
             Addr[tail_pointer] <= addr_from_slb;

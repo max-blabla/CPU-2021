@@ -34,6 +34,7 @@ always @(posedge rst)begin
     rd  <= 0;
     imm <= 0;
     instr <= 0;
+    op <= 0;
 end
 
 always @(instr_from_instr_queue) begin
@@ -41,7 +42,7 @@ always @(instr_from_instr_queue) begin
     rs1 = instr[19:15];
     rs2 = 0;
     imm = 0;
-    pc = 0;
+    pc = pc_from_instr_queue;
     rd = instr[11:7];
     case (instr[6:0])
     7'b0110111 : begin
