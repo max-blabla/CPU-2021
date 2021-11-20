@@ -1,6 +1,7 @@
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
-
+`include "InstrQueue.v"
+`include "Fetcher.v"
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -27,7 +28,54 @@ module cpu(
 // - 0x30000 write: write a byte to output (write 0x00 is ignored)
 // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
-
+wire is_empty_from_iq_to_fc;
+wire is_receiver_from_iq_to_fc;
+wire is_stall_from_fc_to_iq;
+wire is_finish_from_fc_to_iq;
+wire is_instr_from_fc_to_iq;
+wire [`DataLength:`Zero] addr_from_iq_to_fc; 
+wire [`DataLength:`Zero] instr_from_fc_to_iq;
+iq miq(
+    .rst                                     ( rst_in                                      ),
+    .clk                                     ( clk_in                                   ),
+    .is_stall_from_rob                       (                       ),
+    .is_exception_from_rob                   (                    ),
+    .is_stall_from_fc                        ( is_stall_from_fc_to_iq                         ),
+    .is_finish_from_fc                       ( is_finish_from_fc_to_iq                        ),
+    .is_instr_from_fc                        ( is_instr_from_fc_to_iq                         ),
+    .pc_from_rob                             (                               ),
+    .instr_from_fc                           ( instr_from_fc_to_iq                            ),
+    .is_empty_to_dc                          (                            ),
+    .is_empty_to_fc                          ( is_empty_from_iq_to_fc                   ),
+    .instr_to_dc                             (                              ),
+    .pc_to_dc                                (                                  ),
+    .is_receive_to_fc                        ( is_receive_from_iq_to_fc                         ),
+    .pc_to_fc                                ( addr_from_iq_to_fc                                 )
+);
+fc mfc(
+  .rst (rst_in),
+  .clk (clk_in),
+  .data_from_ram (mem_din),
+  .addr_from_slb (),
+  .is_empty_from_slb (),
+  .is_empty_from_slb (),
+  .is_store_from_slb (),
+  .is_empty_from_iq (is_empty_from_iq_to_fc),
+  .addr_from_iq(addr_from_iq_to_fc),
+  .is_receive_from_iq(is_receiver_from_iq_to_fc),
+  .is_receive_from_slb(),
+  .is_instr_to_iq(is_instr_from_fc_to_iq),
+  .is_stall_to_slb(),
+  .is_stall_to_iq(is_stall_from_fc_to_iq),
+  .is_instr_to_slb(),
+  .is_store_to_ram(mem_wr),
+  .is_finish_to_slb(),
+  .is_finish_to_iq(is_finish_from_fc_to_iq),
+  .addr_to_ram(mem_a),
+  .data_to_ram(mem_dout),
+  .data_to_slb(),
+  .data_to_iq(instr_from_fc_to_iq)
+);
 always @(posedge clk_in)
   begin
     if (rst_in)

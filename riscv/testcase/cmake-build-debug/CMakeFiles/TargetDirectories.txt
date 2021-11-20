@@ -1,0 +1,3 @@
+/mnt/d/verilogCoding/RISCV-CPU/riscv/testcase/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/d/verilogCoding/RISCV-CPU/riscv/testcase/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/mnt/d/verilogCoding/RISCV-CPU/riscv/testcase/cmake-build-debug/CMakeFiles/testcase.dir

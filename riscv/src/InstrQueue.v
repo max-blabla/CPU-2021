@@ -13,6 +13,7 @@ module iq
     input wire is_stall_from_fc,
     input wire is_finish_from_fc,
     input wire is_instr_from_fc,
+    input wire addr_from_fc,
     input wire[`PcLength:`Zero] pc_from_rob,
     input wire[`InstrLength:`Zero] instr_from_fc,
     output wire is_empty_to_dc,
@@ -23,13 +24,13 @@ module iq
     output wire[`PcLength:`Zero] pc_to_fc
 //锁存与保持？
 );
-
 reg [PointerStorage:`Zero] head_pointer;
 reg [PointerStorage:`Zero] tail_pointer;
 reg [`InstrLength:`Zero] instr_queue[QueueStorage:`Zero];
 reg [`PcLength:`Zero] pc_queue[QueueStorage:`Zero];
+reg [PointerStorage:`Zero] store_pointer;
 reg is_empty_fc;
-reg is_receive;//给fc的
+reg input_instr_start;
 reg is_empty_dc;//给dc的
 reg [`PcLength:`Zero] pc_dc;
 reg [`PcLength:`Zero] pc_fc;//指向尾部pc, 尾部即为传给fetcher的
@@ -37,9 +38,10 @@ reg [`InstrLength:`Zero] instr_dc;
 integer i;
 always @(posedge rst) begin
     pc_dc <= 0;
-    pc_fc <=  0;
+    pc_fc <=  4096;
     head_pointer <=  0;
     tail_pointer <=  0;
+    store_pointer <= 0;
     for(i =  0 ; i <= QueueStorage ; ++i ) begin
         instr_queue[i] <=  0;
         pc_queue[i] <= 0;
@@ -56,6 +58,7 @@ always @(posedge clk) begin
     if(is_exception_from_rob) begin
         //这个0 是全位吗
         //是的
+        store_pointer <= 0;
         head_pointer <= 0;
         tail_pointer <= 0;
         pc_fc <= pc_from_rob;
@@ -69,24 +72,19 @@ always @(posedge clk) begin
         if((head_pointer != tail_pointer + 1) ) begin //没满//且hit到了
             if(is_finish_from_fc == `True) begin
                 instr_queue[tail_pointer] <= instr_from_fc;
-                tail_pointer <= tail_pointer + 1;
-                if(is_stall_from_fc == `False) begin
-                    pc_fc <= pc_fc + `PcLength;
-                    is_empty_fc <= `False; 
-                end
-                else begin
-                    is_empty_fc <= `True;
-                end
-                is_receive <= `True;
+                tail_pointer <= tail_pointer + 1; 
+            end
+        end
+        //如果不堵住就发送
+        if(is_stall_from_fc == `False && head_pointer != store_pointer + 1) begin
+                pc_fc <= pc_fc + 4;
+                store_pointer <= store_pointer+1;
+                is_empty_fc <= `False; 
             end
             else begin
-                is_receive <= `False;
-            end
+            is_empty_fc <= `True;
         end
-        else begin
-            is_receive <= `False;
-        end
-    //先发送到解码器
+            //先发送到解码器
     //若头等于尾则说明空,则发送空信息
     //以及stall情况
     //反之头进1
@@ -112,5 +110,4 @@ assign is_empty_to_fc = is_empty_fc;
 assign pc_to_fc = pc_fc;
 assign pc_to_dc = pc_dc;
 assign instr_to_dc = instr_dc;
-assign is_receive_to_fc = is_receive;
 endmodule

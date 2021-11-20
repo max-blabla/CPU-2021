@@ -34,6 +34,7 @@ module rob #
     output wire is_exception_to_reg,
     output wire is_exception_to_rs,
     output wire is_exception_to_slb,
+    output wire is_exception_to_fc,
     output wire is_empty_to_rs,
     output wire is_empty_to_slb,
     output wire is_sl_to_rs,
