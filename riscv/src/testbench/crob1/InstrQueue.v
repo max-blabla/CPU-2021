@@ -76,16 +76,16 @@ always @(posedge clk) begin
         if((store_pointer != tail_pointer) ) begin //没满//且hit到了
             if(is_finish_from_fc == `True) begin
                 instr_queue[tail_pointer] <= instr_from_fc;
-                tail_pointer <= tail_pointer + 1; 
+                tail_pointer <= tail_pointer + 4'b0001; 
             end
         end
         //如果不堵住就发送
         if((head_pointer != store_pointer + 4'b0001)) begin
              if(is_stall_from_fc == `False) begin
-                test <= store_pointer + 1;
+                test <= store_pointer + 4'b0001;
                 pc_fc <= pc_fc + 4;
-                pc_queue[store_pointer+1] <= pc_fc+4;
-                store_pointer <= store_pointer+1;
+                pc_queue[store_pointer+4'b0001] <= pc_fc+4;
+                store_pointer <= store_pointer+4'b0001;
                 is_empty_fc <= `False; 
              end
         end
@@ -105,7 +105,7 @@ always @(posedge clk) begin
                 pc_dc <= pc_queue[head_pointer];
                 instr_dc <= instr_queue[head_pointer];
                 is_empty_dc <= `False;
-                head_pointer <= head_pointer + 1;
+                head_pointer <= head_pointer + 4'b0001;
             end
         end
         else begin 
