@@ -3,6 +3,7 @@ module alu (
     input rst,
     input clk,
     input wire[`OpcodeLength:`Zero] op_from_rs,
+    input wire is_empty_from_rs,
     input wire[`DataLength:`Zero] v1_from_rs,
     input wire[`DataLength:`Zero] v2_from_rs,
     input wire[`DataLength:`Zero] imm_from_rs,
@@ -26,8 +27,15 @@ always @(posedge rst) begin
     pc <= 0;
     data <= 0;
     is_finish <= 0;
+    op <= 0;
+    v1 <= 0;
+    v2 <= 0;
+    uv1 <= 0;
+    uv2 <= 0;
+    imm <= 0;
+    jpc <= 0;
 end
-always @(op_from_rs) begin
+always @(is_empty_from_rs) begin
     pc = pc_from_rs;
     op = op_from_rs;
     v1 = v1_from_rs;
@@ -67,9 +75,10 @@ always @(op_from_rs) begin
     `OR : data = v1 | v2;
     `AND : data = v1 & v2;
     endcase
+    is_finish  = ~is_empty_from_rs;
 end
 assign pc_to_rob = pc;
 assign data_to_rob = data;
 assign jpc_to_rob = jpc;
-assign is_finish_to_rob = is_finish; 
+assign is_finish_to_rob = is_finish;
 endmodule

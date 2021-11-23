@@ -45,7 +45,8 @@ always @(posedge rst) begin
     tail_pointer <=  0;
     store_pointer <= 0;
     instr_dc <= 0;
-    for(i =  0 ; i <= QueueStorage ; ++i ) begin
+    pc_queue[0] <= 4096;
+    for(i =  1; i <= QueueStorage ; ++i ) begin
         instr_queue[i] <=  0;
         pc_queue[i] <= 0;
     end

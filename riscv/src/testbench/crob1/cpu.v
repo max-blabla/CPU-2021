@@ -6,6 +6,7 @@
 `include "RegFile.v"
 `include "ReOrderBuffer.v"
 `include "ReverseStation.v"
+`include "ArithmeticLogicUnit.v"
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -73,8 +74,31 @@ wire [`DataLength:`Zero] v1_from_rob_to_rs;
 wire [`DataLength:`Zero] v2_from_rob_to_rs;
 wire [`DataLength:`Zero] imm_from_rob_to_rs;
 wire [`PcLength:`Zero] pc_from_rob_to_rs;
+
+wire [`OpcodeLength:`Zero] op_from_rs_to_alu;
+wire [`DataLength:`Zero] v1_from_rs_to_alu;
+wire [`DataLength:`Zero] v2_from_rs_to_alu;
+wire [`DataLength:`Zero] imm_from_rs_to_alu;
+wire [`PcLength:`Zero] pc_from_rs_to_alu;
+wire is_empty_from_rs_to_alu;
 reg true = `True;
 reg false = `False;
+
+alu malu(
+    .rst                    (rst_in),
+    .clk                    (clk_in),
+    .op_from_rs             (op_from_rs_to_alu),
+    .v1_from_rs             (v1_from_rs_to_alu),
+    .v2_from_rs             (v2_from_rs_to_alu),
+    .imm_from_rs            (imm_from_rs_to_alu),
+    .pc_from_rs             (pc_from_rs_to_alu),
+    .is_empty_from_rs       (is_empty_from_rs_to_alu),
+    .data_to_rob(),
+    .pc_to_rob(),
+    .is_finish_to_rob(),
+    .jpc_to_rob()   
+);
+
 rs mrs(
     .rst                      (rst_in),
     .clk                      (clk_in),
@@ -91,12 +115,13 @@ rs mrs(
     .pc_from_rob              (pc_from_rob_to_rs),
     .commit_data_from_rob     (),
     .commit_pc_from_rob       (),
-    .op_to_alu                (),
-    .v1_to_alu                (),
-    .v2_to_alu                (),
-    .imm_to_alu               (),
-    .pc_to_alu                (),
-    .is_stall_to_rob          ()
+    .op_to_alu                (op_from_rs_to_alu),
+    .v1_to_alu                (v1_from_rs_to_alu),
+    .v2_to_alu                (v2_from_rs_to_alu),
+    .imm_to_alu               (imm_from_rs_to_alu),
+    .pc_to_alu                (pc_from_rs_to_alu),
+    .is_stall_to_rob          (),
+    .is_empty_to_alu          (is_empty_from_rs_to_alu)
 );
 rob mrob(
     .clk                                (clk_in),

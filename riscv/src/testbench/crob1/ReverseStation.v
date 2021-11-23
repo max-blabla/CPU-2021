@@ -25,7 +25,8 @@ module rs
     output wire[`DataLength:`Zero] v2_to_alu,
     output wire[`DataLength:`Zero] imm_to_alu,
     output wire[`DataLength:`Zero] pc_to_alu,
-    output wire is_stall_to_rob
+    output wire is_stall_to_rob,
+    output wire is_empty_to_alu
 );
 reg [`DataLength:`Zero] Value1[RsLength:`Zero];
 reg [`DataLength:`Zero] Value2[RsLength:`Zero];
@@ -41,13 +42,19 @@ reg [`DataLength:`Zero] v2;
 reg [`DataLength:`Zero] imm;
 reg [`PcLength:`Zero] pc;
 reg [`OpcodeLength:`Zero] op;
+reg is_empty;
+//reg [`PcLength:`Zero] testpc;
+//integer test;
+//integer test1;
 integer i;
 always @(posedge rst) begin
     is_stall <= 0;
+    is_empty <= `True;
     v1 <= 0;
     v2 <= 0;
     imm <= 0;
     op <= 0;
+    pc <= 0;
     for(i = 0 ;i <= RsLength; ++i) begin
         Value1[i] <= 0;
         Value2[i] <= 0;
@@ -62,9 +69,11 @@ always @(posedge clk) begin
     //判断是否清空
     if(is_exception_from_rob) begin
         is_stall <= 0;
+        is_empty <= `True;
         v1 <= 0;
         v2 <= 0;
         imm <= 0;
+        pc <= 0;
         for(i = 0 ; i <= RsLength ; ++i) begin
             Value1[i] <= 0;
             Value2[i] <= 0;
@@ -95,14 +104,17 @@ always @(posedge clk) begin
             end
             //再找一遍可以发射的
             begin : loop
+                is_empty = `True;
                 for(i = 0 ; i <= RsLength ; ++i) begin
                     if(is_busy[i] == `True && Queue1[i] == 0 && Queue2[i] == 0) begin
+                     //   test1 = i;
                         v1 = Value1[i];
                         v2 = Value2[i];
                         imm = Imm[i];
                         pc = Pc[i];
                         op = Op[i];
                         is_busy[i] = `False;
+                        is_empty = `False;
                         disable loop;
                     end
                 end
@@ -112,7 +124,9 @@ always @(posedge clk) begin
                 is_stall = `True;
                 for(i = 0 ; i <= RsLength ; ++i) begin
                     if(is_busy[i] == `False) begin
+                       // test= i;
                         Pc[i] = pc_from_rob;
+                      //  testpc = pc_from_rob;
                         Imm[i] = imm_from_rob;
                         Value1[i] = v1_from_rob;
                         Value2[i] = v2_from_rob;
@@ -134,4 +148,5 @@ assign imm_to_alu = imm;
 assign pc_to_alu = pc;
 assign is_stall_to_rob = is_stall;
 assign op_to_alu = op;
+assign is_empty_to_alu = is_empty;
 endmodule

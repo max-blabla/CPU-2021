@@ -1,8 +1,8 @@
 `include "parameters.v"
 module rob #
 (
-    parameter BufferLength = 7,
-    parameter PointerLength = 2,
+    parameter BufferLength = 16,
+    parameter PointerLength = 3,
     parameter RdLength = 4
 )
 (
@@ -139,7 +139,7 @@ always @(posedge clk) begin
             commit_data <= data_storage[head_pointer];
             commit_pc <= pc_storage[head_pointer];
             commit_rd <= rd_storage[head_pointer];
-            head_pointer <= head_pointer + 3'b001;
+            head_pointer <= head_pointer + 4'b0001;
             //更新跳转
             if(jpc_from_alu != pc_from_alu + 4) begin
                 is_exception <= `True;
@@ -157,7 +157,7 @@ always @(posedge clk) begin
             //然后接受来自reg的插入申请
             //然后放到发送池，如果stall了就不更新发送池
             //然后看情况发给rs或slb
-            if(head_pointer != tail_pointer + 3'b001)begin
+            if(head_pointer != tail_pointer + 4'b0001)begin
                 is_empty <= `False;
                 is_stall <= `False;
                 imm <= imm_from_reg;
@@ -177,7 +177,7 @@ always @(posedge clk) begin
                     is_sl <= `False;
                 end
                 endcase
-                tail_pointer <= tail_pointer + 3'b001;
+                tail_pointer <= tail_pointer + 4'b0001;
             end
             else begin
                 is_empty <= `True;
