@@ -109,20 +109,20 @@ always @(posedge clk) begin
         is_finish <= 0;
         is_stall <= 0;
         is_receive <= 0;
-        is_empty <= 0;
+        is_empty <= `True;
         is_store <= 0;
         op <= 0;
-        for (i = 0 ; i <= SlbLength ; ++i ) begin
-            Queue1[i] <= 0;
-            Queue2[i] <= 0 ;
-            Value1[i] <= 0 ;
-            Value2[i] <= 0 ;
-            Op[i] <= 0;
-            Pc[i] <= 0;
-            Imm[i] <= 0;
-            finish[i] <= 0;
-            doing[i] <= 0;
-        end
+      //  for (i = 0 ; i <= SlbLength ; ++i ) begin
+       //     Queue1[i] <= 0;
+      //      Queue2[i] <= 0 ;
+      //      Value1[i] <= 0 ;
+      //      Value2[i] <= 0 ;
+      //      Op[i] <= 0;
+      //      Pc[i] <= 0;
+      //      Imm[i] <= 0;
+      //      finish[i] <= 0;
+       //     doing[i] <= 0;
+       // end
     end
     else begin
         if(is_commit_from_rob) begin

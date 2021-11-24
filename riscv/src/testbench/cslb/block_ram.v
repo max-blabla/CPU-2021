@@ -90,11 +90,7 @@ initial begin
   for (i=0;i<2**ADDR_WIDTH;i=i+1) begin
     ram[i] = 0;
   end
-  $readmemh("gcd.data", ram); // add test.data to vivado project or specify a valid file path
-   for (i=4096;i<4097;i=i+1) begin
-    $display(ram[i]);
-    $display(i);
-  end
+  $readmemh("Helloword.data", ram); // add test.data to vivado project or specify a valid file path
 end
 
 endmodule

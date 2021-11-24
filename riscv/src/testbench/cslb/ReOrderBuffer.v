@@ -33,6 +33,7 @@ module rob #
     output wire is_exception_to_rs,
     output wire is_exception_to_slb,
     output wire is_exception_to_fc,
+    output wire is_exception_to_rob,
     output wire is_empty_to_rs,
     output wire is_empty_to_slb,
     output wire is_sl_to_rs,
@@ -139,8 +140,10 @@ always @(posedge clk) begin
             end
         end
         //然后提交到提交池，更新empty
-        if(finish[head_pointer] == `True) begin
-            is_finish <= finish[head_pointer];
+        if(finish[head_pointer] == `True && head_pointer != tail_pointer) begin
+            $display(pc_storage[head_pointer]);
+         //   $display(jpc_storage[head_pointer]);
+            is_finish <= `True;
             commit_data <= data_storage[head_pointer];
             commit_pc <= pc_storage[head_pointer];
             commit_rd <= rd_storage[head_pointer];
@@ -156,7 +159,7 @@ always @(posedge clk) begin
             end
         end
         else begin
-            is_finish <= finish[head_pointer];
+            is_finish <= `False;
         end
         if(is_empty_from_reg == `False) begin
             //然后接受来自reg的插入申请
@@ -175,6 +178,7 @@ always @(posedge clk) begin
                 rd_storage[tail_pointer] <= rd_from_reg;
                 pc_storage[tail_pointer] <= pc_from_reg;
                 jpc_storage[tail_pointer] <= pc_from_reg+4;
+                finish[tail_pointer] <= `False;
                 case(op_from_reg) 
                 `SB,`SW,`SH,`LH,`LW,`LB,`LBU,`LHU:begin
                     is_sl <= `True;
@@ -214,12 +218,12 @@ always @(posedge clk) begin
         commit_jpc <= 0;
         tail_pointer <= 0;
         head_pointer <= 0;
-        for(i = 0 ; i < BufferLength ; ++i) begin
-            rd_storage[i] <= 0;
-            pc_storage[i] <= 0;
-            data_storage[i] <= 0;
-            finish[i] <= 0;
-        end
+        //for(i = 0 ; i < BufferLength ; ++i) begin
+        //    rd_storage[i] <= 0;
+        //    pc_storage[i] <= 0;
+        //    data_storage[i] <= 0;
+        //    finish[i] <= 0;
+        //end
     end
 end
 assign is_commit_to_reg = is_finish;
@@ -230,6 +234,8 @@ assign is_exception_to_instr_queue = is_exception;
 assign is_exception_to_reg = is_exception;
 assign is_exception_to_rs = is_exception;
 assign is_exception_to_slb = is_exception;
+assign is_exception_to_fc = is_exception;
+assign is_exception_to_rob = is_exception;
 assign is_empty_to_rs = is_empty;
 assign is_empty_to_slb = is_empty;
 assign is_sl_to_rs = is_sl;
