@@ -43,9 +43,9 @@ reg [`DataLength:`Zero] imm;
 reg [`PcLength:`Zero] pc;
 reg [`OpcodeLength:`Zero] op;
 reg is_empty;
-//reg [`PcLength:`Zero] testpc;
+reg [`PcLength:`Zero] testpc;
 //integer test;
-//integer test1;
+integer test1;
 integer i;
 always @(posedge rst) begin
     is_stall <= 0;
@@ -107,7 +107,7 @@ always @(posedge clk) begin
                 is_empty = `True;
                 for(i = 0 ; i <= RsLength ; ++i) begin
                     if(is_busy[i] == `True && Queue1[i] == 0 && Queue2[i] == 0) begin
-                     //   test1 = i;
+                        test1 = i;
                         v1 = Value1[i];
                         v2 = Value2[i];
                         imm = Imm[i];
@@ -126,7 +126,7 @@ always @(posedge clk) begin
                     if(is_busy[i] == `False) begin
                        // test= i;
                         Pc[i] = pc_from_rob;
-                      //  testpc = pc_from_rob;
+                        testpc = pc_from_rob;
                         Imm[i] = imm_from_rob;
                         Value1[i] = v1_from_rob;
                         Value2[i] = v2_from_rob;

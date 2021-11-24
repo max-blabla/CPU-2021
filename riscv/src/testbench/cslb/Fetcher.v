@@ -18,10 +18,11 @@ module fc
     input wire is_empty_from_slb,
     input wire is_store_from_slb,
     input wire is_empty_from_iq,
-    input wire[`PcLength:`Zero] addr_from_iq,
+    input wire [`PcLength:`Zero] addr_from_iq,
     input wire is_receive_from_iq,
     input wire is_receive_from_slb,
     input wire is_exception_from_rob,
+    input wire [CounterLength:`Zero] aim_from_slb,
     output wire is_instr_to_iq,
     output wire is_stall_to_slb,
     output wire is_stall_to_iq,
@@ -41,6 +42,7 @@ reg [`PcLength:`Zero] Addr[FetcherLength:`Zero];
 reg [`DataLength:`Zero] Data[FetcherLength:`Zero];
 reg instr_status[FetcherLength:`Zero];//是否是指令
 reg store_status[FetcherLength:`Zero];
+reg [CounterLength:`Zero] aim_status[FetcherLength:`Zero];
 reg [CounterLength:`Zero] cnt;
 reg [PointerLength:`Zero] head_pointer;
 reg [PointerLength:`Zero] tail_pointer;
@@ -49,6 +51,7 @@ reg [`DataLength:`Zero] addr;
 reg [`UnsignedCharLength:`Zero] char;
 reg [`DataLength:`Zero] data;
 reg [`DataLength:`Zero] addr_iq;
+
 reg is_stall;
 reg is_past;
 reg is_start;
@@ -114,7 +117,7 @@ always @(posedge clk) begin
                     2'b11:Data[head_pointer][31:24]= data_from_ram;
                     endcase
                 end
-                if(cnt == 2'b11) begin
+                if(aim_status[head_pointer] == cnt+2'b01) begin
                     is_instr <= instr_status[head_pointer];
                     data <= Data[head_pointer];
                     addr_iq <= Addr[head_pointer];
@@ -132,13 +135,16 @@ always @(posedge clk) begin
             Data[tail_pointer] <= data_from_slb;
             instr_status[tail_pointer] <= `False;
             store_status[tail_pointer] <= is_store_from_slb;
+            aim_status[tail_pointer] <= aim_from_slb;
             Addr[tail_pointer+5'b00001] <= addr_from_iq;
             instr_status[tail_pointer+5'b00001] <= `True;
             store_status[tail_pointer+5'b00001] <= `False;
-            tail_pointer <= tail_pointer + 5'b00010;      
+            aim_status[tail_pointer+5'b00001] <= 2'b00;
+            tail_pointer <= tail_pointer + 5'b00010;
         end
         else if(is_empty_from_iq ==`True && is_empty_from_slb == `False)begin
             Addr[tail_pointer] <= addr_from_slb;
+            aim_status[tail_pointer] <= aim_from_slb;
             Data[tail_pointer] <= data_from_slb;
             instr_status[tail_pointer] <= `False;
             store_status[tail_pointer] <= is_store_from_slb;
@@ -146,6 +152,7 @@ always @(posedge clk) begin
         end
         else if(is_empty_from_iq ==`False && is_empty_from_slb == `True)begin
             testAddr <= addr_from_iq;
+            aim_status[tail_pointer] <= 2'b00;
             Addr[tail_pointer] <= addr_from_iq;
             instr_status[tail_pointer] <= `True;
             store_status[tail_pointer] <= `False;

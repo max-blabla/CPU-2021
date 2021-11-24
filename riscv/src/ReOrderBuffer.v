@@ -86,11 +86,11 @@ reg is_finish;
 reg is_empty;//这是指向两个运算模块的
 reg is_stall;
 reg is_sl;
-
+integer test;
 integer i;
 always @(posedge rst) begin
     is_exception <=0;
-    is_empty <= 0;
+    is_empty <= `True;
     is_sl <= 0;
     is_stall <= 0;
     is_finish <= 0;
@@ -107,7 +107,7 @@ always @(posedge rst) begin
     commit_jpc <= 0;
     tail_pointer <= 0;
     head_pointer <= 0;
-    for(i = 0 ; i < BufferLength ; ++i) begin
+    for(i = 0 ; i <= BufferLength ; ++i) begin
         rd_storage[i] <= 0;
         pc_storage[i] <= 0;
         data_storage[i] <= 0;
@@ -120,6 +120,7 @@ always @(posedge clk) begin
         if(is_finish_from_alu == `True) begin
             for(i = 0 ; i <= BufferLength ; i = i + 1)begin
                 if(pc_storage[i] == pc_from_alu) begin
+                    test <= i;
                     finish[i] <= `True;
                     data_storage[i] <= data_from_alu;
                 end
@@ -191,7 +192,7 @@ always @(posedge clk) begin
     end
     else begin
         is_exception <=0;
-        is_empty <= 0;
+        is_empty <= `True;
         is_sl <= 0;
         is_stall <= 0;
         is_finish <= 0;

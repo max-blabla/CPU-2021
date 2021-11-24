@@ -75,7 +75,7 @@ always @(posedge clk) begin
     //若满,则不接收
     //否则 接收,尾+1并且pc自动+32
         if((store_pointer != tail_pointer) ) begin //没满//且hit到了
-            if(is_finish_from_fc == `True) begin
+            if(is_finish_from_fc == `True && is_instr_from_fc == `True) begin
                 instr_queue[tail_pointer] <= instr_from_fc;
                 tail_pointer <= tail_pointer + 4'b0001; 
             end

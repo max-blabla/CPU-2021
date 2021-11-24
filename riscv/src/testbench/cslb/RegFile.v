@@ -10,7 +10,7 @@ module rf
     input  wire    rst,
     input  wire    clk,
     input  wire    is_empty_from_decoder,
-    input  wire    is_finish_from_rob,
+    input  wire    is_commit_from_rob,
     input  wire    is_exception_from_rob,
     input  wire    [`PcLength:`Zero]       pc_from_rob,
     input  wire    [RdLength:`Zero]        rd_from_rob,
@@ -28,7 +28,8 @@ module rf
     output wire    [`PcLength:`Zero]       q1_to_rob,
     output wire    [`PcLength:`Zero]       q2_to_rob,
     output wire    [`OpcodeLength:`Zero]   op_to_rob,
-    output wire    [`PcLength:`Zero]       pc_to_rob
+    output wire    [`PcLength:`Zero]       pc_to_rob,
+    output wire    [RdLength:`Zero]        rd_to_rob
 );
 integer i;
 reg [`DataLength:`Zero] RegValue [RegFileLength:`Zero];
@@ -40,8 +41,9 @@ reg [`PcLength:`Zero] q1;
 reg [`PcLength:`Zero] q2;
 reg [`OpcodeLength:`Zero] op;
 reg [`PcLength:`Zero] pc;
+reg [RdLength:`Zero] rd;
 always @(posedge rst) begin
-    for(i = 0 ; i < RegFileLength ; ++i) begin
+    for(i = 0 ; i <= RegFileLength ; i = i + 1) begin
         RegValue[i] <= 0;
         RegQueue[i] <= 0;
     end
@@ -52,6 +54,7 @@ always @(posedge rst) begin
     q2 <= 0;
     op <= 0;
     pc <= 0;
+    rd <= 0;
 end
 always @(posedge clk) begin
     //先判断是否完成
@@ -71,16 +74,17 @@ always @(posedge clk) begin
         q1 <= 0;
         q2 <= 0;
         op <= 0;
+        rd <= 0;
         pc <= 0;
     end
     else begin
-        if(is_empty_from_decoder == `False) begin
-            if(is_finish_from_rob) begin
-                if(RegQueue[rd_from_rob] == pc_from_rob) begin
-                    RegQueue[rd_from_rob] = 0;
-                end
-                RegValue[rd_from_rob] = data_from_rob;
+        if(is_commit_from_rob) begin
+            if(RegQueue[rd_from_rob] == pc_from_rob) begin
+                RegQueue[rd_from_rob] = 0;
             end
+            RegValue[rd_from_rob] = data_from_rob;
+        end
+        if(is_empty_from_decoder == `False) begin
             if(rd_from_decoder != 0) begin
                 RegQueue[rd_from_decoder] <= pc_from_decoder;
             end
@@ -88,6 +92,7 @@ always @(posedge clk) begin
             v2 <= RegValue[rs2_from_decoder];
             q1 <= RegQueue[rs1_from_decoder];
             q2 <= RegQueue[rs2_from_decoder];
+            rd <= rd_from_decoder;
             pc <= pc_from_decoder;
             op <= op_from_decoder;
             is_empty <= `False;
@@ -105,4 +110,5 @@ assign imm_to_rob = imm_from_decoder;
 assign is_empty_to_rob = is_empty;
 assign pc_to_rob = pc;
 assign op_to_rob = op;
+assign rd_to_rob = rd;
 endmodule

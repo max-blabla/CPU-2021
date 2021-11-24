@@ -70,7 +70,7 @@ always @(posedge rst) begin
     is_finish <= 0;
     is_stall <= 0;
     is_receive <= 0;
-    is_empty <= 0;
+    is_empty <= `True;
     is_store <= 0;
     op <= 0;
     for (i = 0 ; i <= SlbLength ; ++i ) begin
@@ -119,17 +119,17 @@ always @(posedge clk) begin
         if(is_commit_from_rob) begin
             for(i = 0 ; i <= SlbLength;i = i + 1) begin
                 if(Queue1[i] != 0 && Queue1[i]  ==  commit_pc_from_rob) begin
-                    Queue1[i] = 0;
-                    Value1[i] = commit_data_from_rob;
+                    Queue1[i] <= 0;
+                    Value1[i] <= commit_data_from_rob;
                 end
                 if(Queue2[i] != 0 && Queue2[i]  ==  commit_pc_from_rob) begin
-                    Queue1[i] = 0;
-                    Value2[i] = commit_data_from_rob;
+                    Queue1[i] <= 0;
+                    Value2[i] <= commit_data_from_rob;
                 end
             end
         end
         //再拿fc更新一遍
-        if(is_finish_from_fc == `True && is_instr_from_fc == `True) begin
+        if(is_finish_from_fc == `True && is_instr_from_fc == `False) begin
             case (Op[head_pointer]) 
                 `LHU:begin
                     Value2[head_pointer] <= data_from_fc[15:0];
@@ -169,7 +169,7 @@ always @(posedge clk) begin
                         is_store <= `True;
                         data_rob <= 0;
                         pc_rob <= Pc[head_pointer];
-                        head_pointer <= head_pointer + 1;
+                        head_pointer <= head_pointer + 3'b001;
                     end
                     else begin
                         is_empty <= `True;
@@ -181,7 +181,7 @@ always @(posedge clk) begin
                         if(finish[head_pointer]) begin
                             data_rob <= Value2[head_pointer];
                             pc_rob <= Pc[head_pointer];
-                            head_pointer <= head_pointer + 1;
+                            head_pointer <= head_pointer + 3'b001;
                             is_finish <= `True;
                         end 
                     end
@@ -204,7 +204,7 @@ always @(posedge clk) begin
             is_empty <= `True;
         end
             //然后看自己堵了吗，堵了的话不准进
-        if(head_pointer != tail_pointer + 1 && is_empty_from_rob == `False & is_sl_from_rob == `True) begin
+        if(head_pointer != tail_pointer + 3'b001 && is_empty_from_rob == `False & is_sl_from_rob == `True) begin
             if(op_from_rob == `SB || op_from_rob ==`SW || op_from_rob == `SH) finish[tail_pointer] <= `True;
             else finish[tail_pointer] <= `False;
             is_stall <= `True;
@@ -216,7 +216,7 @@ always @(posedge clk) begin
             Value2[tail_pointer] <= v2_from_rob;
             Pc[tail_pointer] <= pc_from_rob;
             Imm[tail_pointer] <= imm_from_rob;
-            tail_pointer <= tail_pointer + 1;
+            tail_pointer <= tail_pointer + 3'b001;
         end
         else begin
             is_stall <= `False;

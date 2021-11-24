@@ -221,9 +221,6 @@ always @*
 always @*
   begin
     // Setup default FF updates.
-    $display("?");
-    $dumpfile("test.vcd");
-    $dumpvars(0,hci);
     d_state        = q_state;
     d_decode_cnt   = q_decode_cnt;
     d_execute_cnt  = q_execute_cnt;

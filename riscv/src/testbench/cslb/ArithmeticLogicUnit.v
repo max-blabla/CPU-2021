@@ -35,7 +35,7 @@ always @(posedge rst) begin
     imm <= 0;
     jpc <= 0;
 end
-always @(is_empty_from_rs) begin
+always @(*) begin
     pc = pc_from_rs;
     op = op_from_rs;
     v1 = v1_from_rs;
@@ -43,7 +43,7 @@ always @(is_empty_from_rs) begin
     uv1 = v1_from_rs;
     uv2 = v2_from_rs;
     imm = imm_from_rs;
-    jpc = pc + 4;
+    jpc = pc_from_rs + 4;
     case(op)
     `LUI : data = imm << 12;
     `AUIPC : data = pc + imm << 12;

@@ -125,31 +125,31 @@ always @(posedge clk) begin
             end
         end
     end
-    if(head_pointer != tail_pointer + PointerOne && head_pointer != tail_pointer + PointerTwo && head_pointer != tail_pointer + PointerThree) begin
+    if(head_pointer != tail_pointer + 5'b00001 && head_pointer != tail_pointer + 5'b00010 && head_pointer != tail_pointer + 5'b00011) begin
         is_stall <= `False;
         if(is_empty_from_iq ==`False && is_empty_from_slb == `False) begin
             Addr[tail_pointer] <= addr_from_slb;
             Data[tail_pointer] <= data_from_slb;
             instr_status[tail_pointer] <= `False;
             store_status[tail_pointer] <= is_store_from_slb;
-            Addr[tail_pointer+1] <= addr_from_iq;
-            instr_status[tail_pointer+1] <= `True;
-            store_status[tail_pointer+1] <= `False;
-            tail_pointer <= tail_pointer + 2;      
+            Addr[tail_pointer+5'b00001] <= addr_from_iq;
+            instr_status[tail_pointer+5'b00001] <= `True;
+            store_status[tail_pointer+5'b00001] <= `False;
+            tail_pointer <= tail_pointer + 5'b00010;      
         end
         else if(is_empty_from_iq ==`True && is_empty_from_slb == `False)begin
             Addr[tail_pointer] <= addr_from_slb;
             Data[tail_pointer] <= data_from_slb;
             instr_status[tail_pointer] <= `False;
             store_status[tail_pointer] <= is_store_from_slb;
-            tail_pointer <= tail_pointer + 1;      
+            tail_pointer <= tail_pointer + 5'b00001;      
         end
         else if(is_empty_from_iq ==`False && is_empty_from_slb == `True)begin
             testAddr <= addr_from_iq;
             Addr[tail_pointer] <= addr_from_iq;
             instr_status[tail_pointer] <= `True;
             store_status[tail_pointer] <= `False;
-            tail_pointer <= tail_pointer + 1;      
+            tail_pointer <= tail_pointer + 5'b00001;      
         end
     end 
     else begin
