@@ -40,12 +40,12 @@ reg [`PcLength:`Zero]test;
 integer i;
 always @(posedge rst) begin
     pc_dc <= 0;
-    pc_fc <=  4096;
+    pc_fc <=  0;
     head_pointer <=  0;
     tail_pointer <=  0;
     store_pointer <= 0;
     instr_dc <= 0;
-    pc_queue[0] <= 4096;
+    pc_queue[0] <= 0;
     for(i =  1; i <= QueueStorage ; ++i ) begin
         instr_queue[i] <=  0;
         pc_queue[i] <= 0;

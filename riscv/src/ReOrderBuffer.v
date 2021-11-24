@@ -27,13 +27,13 @@ module rob #
     input wire[`DataLength:`Zero] q2_from_reg,
     input wire[`DataLength:`Zero] imm_from_reg,
     input wire[RdLength:`Zero] rd_from_reg,
-    output wire is_finish_to_reg,
     output wire is_stall_to_instr_queue,
     output wire is_exception_to_instr_queue,
     output wire is_exception_to_reg,
     output wire is_exception_to_rs,
     output wire is_exception_to_slb,
     output wire is_exception_to_fc,
+    output wire is_exception_to_rob,
     output wire is_empty_to_rs,
     output wire is_empty_to_slb,
     output wire is_sl_to_rs,
@@ -59,9 +59,13 @@ module rob #
     output wire[`OpcodeLength:`Zero] op_to_slb,
     output wire[`DataLength:`Zero] commit_data_to_rs,
     output wire[`DataLength:`Zero] commit_data_to_slb,
-    output wire[`DataLength:`Zero] commit_data_to_reg
+    output wire[`DataLength:`Zero] commit_data_to_reg,
+    output wire is_commit_to_slb,
+    output wire is_commit_to_rs,
+    output wire is_commit_to_reg
 );
 reg [`DataLength:`Zero] data_storage[BufferLength:`Zero];
+reg [`PcLength:`Zero] jpc_storage[BufferLength:`Zero];
 reg [`PcLength:`Zero] pc_storage[BufferLength:`Zero];
 reg [RdLength:`Zero] rd_storage[BufferLength:`Zero];
 reg finish[BufferLength:`Zero];
@@ -123,36 +127,39 @@ always @(posedge clk) begin
                     test <= i;
                     finish[i] <= `True;
                     data_storage[i] <= data_from_alu;
+                    jpc_storage[i] <= jpc_from_alu;
                 end
             end
         end
         if(is_finish_from_slb == `True) begin
             for(i = 0 ; i <= BufferLength ; i = i + 1)begin
-                if(pc_storage[i] == pc_from_alu) begin
+                if(pc_storage[i] == pc_from_slb) begin
                     finish[i] <= `True;
                     data_storage[i] <= data_from_slb;
                 end
             end
         end
         //然后提交到提交池，更新empty
-        if(finish[head_pointer] == `True) begin
-            is_finish <= finish[head_pointer];
+        if(finish[head_pointer] == `True && head_pointer != tail_pointer) begin
+            $display(pc_storage[head_pointer]);
+         //   $display(jpc_storage[head_pointer]);
+            is_finish <= `True;
             commit_data <= data_storage[head_pointer];
             commit_pc <= pc_storage[head_pointer];
             commit_rd <= rd_storage[head_pointer];
             head_pointer <= head_pointer + 4'b0001;
             //更新跳转
-            if(jpc_from_alu != pc_from_alu + 4) begin
+            if(jpc_storage[head_pointer] != pc_storage[head_pointer] + 4) begin
                 is_exception <= `True;
-                commit_jpc <= jpc_from_alu;
+                commit_jpc <= jpc_storage[head_pointer];
             end
             else begin
                 is_exception <= `False;
-                commit_jpc <= jpc_from_alu;
+                commit_jpc <= jpc_storage[head_pointer];
             end
         end
         else begin
-            is_finish <= finish[head_pointer];
+            is_finish <= `False;
         end
         if(is_empty_from_reg == `False) begin
             //然后接受来自reg的插入申请
@@ -170,6 +177,8 @@ always @(posedge clk) begin
                 pc <= pc_from_reg;
                 rd_storage[tail_pointer] <= rd_from_reg;
                 pc_storage[tail_pointer] <= pc_from_reg;
+                jpc_storage[tail_pointer] <= pc_from_reg+4;
+                finish[tail_pointer] <= `False;
                 case(op_from_reg) 
                 `SB,`SW,`SH,`LH,`LW,`LB,`LBU,`LHU:begin
                     is_sl <= `True;
@@ -209,20 +218,24 @@ always @(posedge clk) begin
         commit_jpc <= 0;
         tail_pointer <= 0;
         head_pointer <= 0;
-        for(i = 0 ; i < BufferLength ; ++i) begin
-            rd_storage[i] <= 0;
-            pc_storage[i] <= 0;
-            data_storage[i] <= 0;
-            finish[i] <= 0;
-        end
+        //for(i = 0 ; i < BufferLength ; ++i) begin
+        //    rd_storage[i] <= 0;
+        //    pc_storage[i] <= 0;
+        //    data_storage[i] <= 0;
+        //    finish[i] <= 0;
+        //end
     end
 end
-assign is_finish_to_reg = is_finish;
+assign is_commit_to_reg = is_finish;
+assign is_commit_to_slb = is_finish;
+assign is_commit_to_rs = is_finish;
 assign is_stall_to_instr_queue = is_stall;
 assign is_exception_to_instr_queue = is_exception;
 assign is_exception_to_reg = is_exception;
 assign is_exception_to_rs = is_exception;
 assign is_exception_to_slb = is_exception;
+assign is_exception_to_fc = is_exception;
+assign is_exception_to_rob = is_exception;
 assign is_empty_to_rs = is_empty;
 assign is_empty_to_slb = is_empty;
 assign is_sl_to_rs = is_sl;

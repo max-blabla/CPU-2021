@@ -35,7 +35,7 @@ always @(posedge rst) begin
     imm <= 0;
     jpc <= 0;
 end
-always @(is_empty_from_rs) begin
+always @(*) begin
     pc = pc_from_rs;
     op = op_from_rs;
     v1 = v1_from_rs;
@@ -43,7 +43,7 @@ always @(is_empty_from_rs) begin
     uv1 = v1_from_rs;
     uv2 = v2_from_rs;
     imm = imm_from_rs;
-    jpc = pc + 4;
+    jpc = pc_from_rs + 4;
     case(op)
     `LUI : data = imm << 12;
     `AUIPC : data = pc + imm << 12;
@@ -51,9 +51,13 @@ always @(is_empty_from_rs) begin
     `JALR : begin data = pc + 4; jpc = (v1 + {{20{imm[11]}},imm[11:0]} ) & (~1); end
     `BEQ : jpc = (v1==v2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
     `BNE : jpc = (v1!=v2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
-    `BLT : jpc = (v1<v2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
+    `BLT : begin
+        jpc = (v1<v2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
+    end
     `BGE : jpc = (v1>=v2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
-    `BLTU : jpc = (uv1<uv2) ? pc + {{19{imm[12]}},imm[12:0]} : pc+4; 
+    `BLTU : begin
+        jpc = (uv1<uv2) ? pc + {{19{imm[12]}},imm[12:0]} : pc+4;
+    end 
     `BGEU : jpc = (uv1>=uv2) ? pc + {{19{imm[12]}},imm[12:0]} : pc + 4;
     `ADDI : data = v1 + {{20{imm[11]}},imm[11:0]};
     `SLTI : data = (v1 < {{20{imm[11]}},imm[11:0]}) ? 1 : 0;

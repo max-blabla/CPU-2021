@@ -65,10 +65,13 @@ always @(instr_from_instr_queue) begin
         op = `JALR;
         imm[11:0] = instr[31:20];
     end
-    7'b1100111 : begin
+    7'b1100011 : begin
        rd  = 0;
        rs2 = instr[24:20];
        imm[12] = instr[31];imm[10:5]=instr[30:25];imm[4:1]=instr[11:8];imm[11]=instr[7];
+     //  $display(rs2);
+     //  $display(rs1);
+     //  $display(rd);
        case (instr[14:12])
        3'b000: op = `BEQ;
        3'b001: op = `BNE;
@@ -91,6 +94,7 @@ always @(instr_from_instr_queue) begin
     7'b0100011 : begin
         rd = 0;
         rs2 = instr[24:20];
+        imm[4:0] = instr[11:7];imm[11:5] = instr[31:25];
         case(instr[14:12])
         3'b000: op = `SB;
         3'b001: op = `SH;
@@ -105,7 +109,7 @@ always @(instr_from_instr_queue) begin
         3'b011: op = `SLTIU;
         3'b100: op = `XORI;
         3'b110: op = `ORI;
-        3'b110: op = `SLLI;
+        3'b001: op = `SLLI;
         3'b111: op = `ANDI;
         3'b101: begin
             op = instr[30] ? `SRLI: `SRAI;

@@ -10,7 +10,7 @@ module rf
     input  wire    rst,
     input  wire    clk,
     input  wire    is_empty_from_decoder,
-    input  wire    is_finish_from_rob,
+    input  wire    is_commit_from_rob,
     input  wire    is_exception_from_rob,
     input  wire    [`PcLength:`Zero]       pc_from_rob,
     input  wire    [RdLength:`Zero]        rd_from_rob,
@@ -42,8 +42,9 @@ reg [`PcLength:`Zero] q2;
 reg [`OpcodeLength:`Zero] op;
 reg [`PcLength:`Zero] pc;
 reg [RdLength:`Zero] rd;
+reg [`PcLength:`Zero] test1;
 always @(posedge rst) begin
-    for(i = 0 ; i < RegFileLength ; ++i) begin
+    for(i = 0 ; i <= RegFileLength ; i = i + 1) begin
         RegValue[i] <= 0;
         RegQueue[i] <= 0;
     end
@@ -62,10 +63,10 @@ always @(posedge clk) begin
 //再rs读取
 //再rd写入
     if(is_exception_from_rob) begin
-        if(rd_from_decoder != 0) begin
-            RegValue[rd_from_decoder] <= data_from_rob;
+        if(rd_from_rob != 0) begin
+            RegValue[rd_from_rob] <= data_from_rob;
         end
-        for(i = 0 ;i <= RegFileLength ; ++i) begin
+        for(i = 0 ;i <= RegFileLength ; i = i + 1) begin
              RegQueue[i] <= 0;
         end
         is_empty <= `True;
@@ -78,13 +79,14 @@ always @(posedge clk) begin
         pc <= 0;
     end
     else begin
-        if(is_empty_from_decoder == `False) begin
-            if(is_finish_from_rob) begin
-                if(RegQueue[rd_from_rob] == pc_from_rob) begin
-                    RegQueue[rd_from_rob] = 0;
-                end
-                RegValue[rd_from_rob] = data_from_rob;
+        test1 = RegQueue[1];
+        if(is_commit_from_rob) begin
+            if(RegQueue[rd_from_rob] == pc_from_rob) begin
+                RegQueue[rd_from_rob] = 0;
             end
+            RegValue[rd_from_rob] = data_from_rob;
+        end
+        if(is_empty_from_decoder == `False) begin
             if(rd_from_decoder != 0) begin
                 RegQueue[rd_from_decoder] <= pc_from_decoder;
             end
