@@ -9,20 +9,22 @@ module slb
 (
     input wire rst,
     input wire clk,
-    input wire[`DataLength:`Zero] v1_from_rob,
-    input wire[`DataLength:`Zero] v2_from_rob,
-    input wire[`PcLength:`Zero] q1_from_rob,
-    input wire[`PcLength:`Zero] q2_from_rob,
-    input wire[`DataLength:`Zero] imm_from_rob,
+    input wire[`DataLength:`Zero] v1_from_rf,
+    input wire[`DataLength:`Zero] v2_from_rf,
+    input wire[`PcLength:`Zero] q1_from_rf,
+    input wire[`PcLength:`Zero] q2_from_rf,
+    input wire[`DataLength:`Zero] imm_from_rf,
     input wire[`DataLength:`Zero] commit_data_from_rob,
-    input wire[`OpcodeLength:`Zero] op_from_rob,
+    input wire[`OpcodeLength:`Zero] op_from_rf,
     input wire is_exception_from_rob,
-    input wire is_empty_from_rob,
+    input wire is_empty_from_rf,
+    input wire is_ready_from_rf,
     input wire is_commit_from_rob,
     input wire is_stall_from_fc,
+    input wire is_store_from_fc,
     input wire[`PcLength:`Zero] commit_pc_from_rob,
-    input wire[`DataLength:`Zero] pc_from_rob,
-    input wire is_sl_from_rob,
+    input wire[`DataLength:`Zero] pc_from_rf,
+    input wire is_sl_from_rf,
     input wire[`PcLength:`Zero] data_from_fc,
     input wire is_instr_from_fc,
     input wire is_finish_from_fc,
@@ -31,7 +33,7 @@ module slb
     output wire is_empty_to_fc,
     output wire is_store_to_fc,
     output wire is_receive_to_fc,
-    output wire is_stall_to_rob,
+    output wire is_ready_to_rf,
     output wire is_finish_to_rob,
     output wire[`DataLength:`Zero] data_to_rob,
     output wire[`DataLength:`Zero] pc_to_rob,
@@ -57,7 +59,7 @@ reg [`PcLength:`Zero] pc_rob; //done
 reg [`DataLength:`Zero] data_rob; //done
 reg [`OpcodeLength:`Zero] op; //done
 reg is_receive; //对fc
-reg is_stall;//对rob
+reg is_ready;//对rob
 reg is_finish;//向rob发送的
 reg is_empty;//向fetcher发送的
 reg is_store;//向fetcher发送的
@@ -77,7 +79,7 @@ always @(posedge rst) begin
     pc_rob <= 0;
     data_rob <= 0;
     is_finish <= 0;
-    is_stall <= 0;
+    is_ready <= 0;
     is_receive <= 0;
     is_empty <= `True;
     is_store <= 0;
@@ -107,7 +109,7 @@ always @(posedge clk) begin
         pc_rob <= 0;
         data_rob <= 0;
         is_finish <= 0;
-        is_stall <= 0;
+        is_ready <= 0;
         is_receive <= 0;
         is_empty <= `True;
         is_store <= 0;
@@ -138,7 +140,7 @@ always @(posedge clk) begin
             end
         end
         //再拿fc更新一遍
-        if(is_finish_from_fc == `True && is_instr_from_fc == `False) begin
+        if(is_finish_from_fc == `True && is_instr_from_fc == `False && is_store_from_fc == `False) begin
             case (Op[head_pointer]) 
                 `LHU:begin
                     Value2[head_pointer] <= data_from_fc[15:0];
@@ -235,26 +237,22 @@ always @(posedge clk) begin
             is_empty <= `True;
             is_finish <= `False;
         end
-            //然后看自己堵了吗，堵了的话不准进
-        if(head_pointer != tail_pointer + 3'b001 ) begin
-            if(is_empty_from_rob == `False & is_sl_from_rob == `True)begin
-                if(op_from_rob == `SB || op_from_rob ==`SW || op_from_rob == `SH) finish[tail_pointer] <= `True;
-                else finish[tail_pointer] <= `False;
-                doing[tail_pointer] <= `False;
-                Op[tail_pointer] <= op_from_rob;
-                Queue1[tail_pointer] <= q1_from_rob;
-                Queue2[tail_pointer] <= q2_from_rob;
-                Value1[tail_pointer] <= v1_from_rob;
-                Value2[tail_pointer] <= v2_from_rob;
-                Pc[tail_pointer] <= pc_from_rob;
-                Imm[tail_pointer] <= imm_from_rob;
-                tail_pointer <= tail_pointer + 3'b001;
-            end
-            is_stall <= `False;
-        end
-        else begin
-            is_stall <= `True;
-        end
+                //然后看自己堵了吗，堵了的话不准进
+                if(head_pointer != tail_pointer + 3'b001) is_ready <= `True;
+                else is_ready <= `False;
+                if(is_ready_from_rf == `True && is_sl_from_rf == `True && is_ready == `True)begin
+                    if(op_from_rf == `SB || op_from_rf ==`SW || op_from_rf == `SH) finish[tail_pointer] <= `True;
+                    else finish[tail_pointer] <= `False;
+                    doing[tail_pointer] <= `False;
+                    Op[tail_pointer] <= op_from_rf;
+                    Queue1[tail_pointer] <= q1_from_rf;
+                    Queue2[tail_pointer] <= q2_from_rf;
+                    Value1[tail_pointer] <= v1_from_rf;
+                    Value2[tail_pointer] <= v2_from_rf;
+                    Pc[tail_pointer] <= pc_from_rf;
+                    Imm[tail_pointer] <= imm_from_rf;
+                    tail_pointer <= tail_pointer + 3'b001;
+                end
     end
 end
 assign data_to_fc = data_fc;
@@ -262,7 +260,7 @@ assign addr_to_fc = addr_fc;
 assign pc_to_rob = pc_rob;
 assign data_to_rob = data_rob;
 assign is_receive_to_fc = is_receive;
-assign is_stall_to_rob = is_stall;
+assign is_ready_to_rf = is_ready;
 assign is_store_to_fc = is_store;
 assign is_finish_to_rob = is_finish;
 assign is_empty_to_fc = is_empty;

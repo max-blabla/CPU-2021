@@ -27,7 +27,7 @@ module fc
     output wire is_stall_to_slb,
     output wire is_stall_to_iq,
     output wire is_instr_to_slb,
-
+    output wire is_store_to_slb,
     output wire is_store_to_ram,
     output wire is_finish_to_slb,
     output wire is_finish_to_iq,
@@ -52,7 +52,7 @@ reg [`DataLength:`Zero] addr;
 reg [`UnsignedCharLength:`Zero] char;
 reg [`DataLength:`Zero] data;
 reg [`DataLength:`Zero] addr_iq;
-
+reg is_store_slb;
 reg is_stall;
 reg is_past;
 reg is_start;
@@ -64,6 +64,7 @@ reg [`DataLength:`Zero] testAddr;
 reg [`DataLength:`Zero] testAddr2;
 reg [1:0]testAim;
 reg [`UnsignedCharLength:`Zero] testchar;
+reg [31:0]ttt;
 integer i;
 always @(posedge rst) begin
     is_stall <= 0;
@@ -76,6 +77,7 @@ always @(posedge rst) begin
     data <= 0;
     head_pointer <= 0;
     tail_pointer <= 0;
+    ttt <= 11;
     for(i = 0 ; i < FetcherLength; ++i) begin
         Addr[i] <= 0;
         Data[i] <= 0;
@@ -95,23 +97,18 @@ always @(posedge clk) begin
             end
             else begin
                 if(is_start == `False ) begin
-                    is_store <= store_status[head_pointer];
-                    addr <= Addr[head_pointer];
+                    is_store_slb <= store_status[head_pointer];
+                    if(store_status[head_pointer] == `False)begin
+                         is_store <= store_status[head_pointer];
+                         addr <= Addr[head_pointer];
+                    end
                     is_start <= `True;
                 end
                 else begin
-                    addr <= addr + 1;
-                    if(is_past == `False) begin
-                        is_past <= `True;
-                    end
-                    else begin
-                        if(store_status[head_pointer] == `True) begin
-                            case (cnt)
-                            2'b00:char = Data[head_pointer][7:0];
-                            2'b01:char = Data[head_pointer][15:8];
-                            2'b10:char = Data[head_pointer][23:16];
-                            2'b11:char = Data[head_pointer][31:24];
-                            endcase
+                    if(store_status[head_pointer] == `False) begin
+                        addr <= addr + 1;
+                        if(is_past == `False) begin
+                            is_past <= `True;
                         end
                         else begin
                             case (cnt)
@@ -120,17 +117,54 @@ always @(posedge clk) begin
                             2'b10:Data[head_pointer][23:16]= data_from_ram;
                             2'b11:Data[head_pointer][31:24]= data_from_ram;
                             endcase
+                            if(aim_status[head_pointer] == cnt+2'b01) begin
+                                testAim <= aim_status[head_pointer];
+                                is_instr <= instr_status[head_pointer];
+                                data <= Data[head_pointer];
+                                addr_iq <= Addr[head_pointer];
+                                is_store <= `False;
+                                is_finish <= `True;
+                                is_past <= `False;
+                            end
+                            cnt <= cnt+1;
                         end
-                        if(aim_status[head_pointer] == cnt+2'b01) begin
-                            testAim <= aim_status[head_pointer];
-                            is_instr <= instr_status[head_pointer];
-                            data <= Data[head_pointer];
-                            addr_iq <= Addr[head_pointer];
-                            is_finish <= `True;
-                            is_past <= `False;
-                        end
-                        cnt <= cnt+1;
                     end
+                    else begin
+                        if(is_past == `False)begin
+                            is_store <= `True;
+                            is_past  <= `True;
+                            char <= Data[head_pointer][7:0];
+                            addr <= Addr[head_pointer];
+                            cnt <= cnt+1;
+                        end
+                        else begin
+                         //   $display("?");
+                         //   $display("\n");
+                        //    $display(cnt);
+                         //   $display(Data[head_pointer]);
+                         //   $display(aim_status[head_pointer]);
+                        //    $display("\n");
+                            testchar <= Data[head_pointer];
+                            case (cnt)
+                            2'b01:char <= Data[head_pointer][15:8];
+                            2'b10:char <= Data[head_pointer][23:16];
+                            2'b11:char <= Data[head_pointer][31:24];
+                            endcase
+                            addr <= addr + 1;
+                            if(aim_status[head_pointer] == cnt) begin
+                                testAim <= aim_status[head_pointer];
+                                is_instr <= instr_status[head_pointer];
+                                data <= Data[head_pointer];
+                        //        char <= 65;
+                                addr_iq <= Addr[head_pointer];
+                                is_store <= `False;
+                                is_finish <= `True;
+                                is_past <= `False;
+                            end
+                            cnt <= cnt+1;
+                        end
+                    end
+                    
                 end
             end
            
@@ -171,7 +205,7 @@ always @(posedge clk) begin
                     tail_pointer <= tail_pointer + 5'b00001;      
                 end
                 else if(is_empty_from_iq ==`False && is_empty_from_slb == `True)begin
-                    testAddr <= addr_from_iq;
+  
                     aim_status[tail_pointer] <= 2'b00;
                     Addr[tail_pointer] <= addr_from_iq;
                     instr_status[tail_pointer] <= `True;
@@ -199,6 +233,7 @@ assign is_stall_to_slb = is_stall;
 assign is_store_to_ram = is_store;
 assign is_finish_to_iq = is_finish;
 assign is_finish_to_slb = is_finish;
+assign is_store_to_slb = is_store_slb;
 assign addr_to_ram = addr;
 assign data_to_ram = char;
 assign data_to_slb = data;

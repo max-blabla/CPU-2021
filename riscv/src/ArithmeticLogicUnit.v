@@ -44,6 +44,7 @@ always @(*) begin
     uv2 = v2_from_rs;
     imm = imm_from_rs;
     jpc = pc_from_rs + 4;
+    data = 0;
     case(op)
     `LUI : data = imm << 12;
     `AUIPC : data = pc + imm << 12;

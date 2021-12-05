@@ -2,22 +2,14 @@
 #include <fstream>
 #include <sstream>
 using namespace std;
-int main() {
-    ifstream is;
-    string dataname="gcd";
-    string str = "../bin/bin/"+dataname + ".bin";
-    is.open(str);
-    int test;
-    string tt;
+int gcd(int x, int y) {
+    if (x%y == 0) return y;
+    else return gcd(y, x%y);
+}
 
-    while(is){
-        getline(is,tt);
-        stringstream ss(tt);
-        while(ss){
-            int i;
-            ss >> i;
-            cout<<i<<'\n';
-        }
-        cout << tt<<'\n';
-    }
+int main() {
+    cout << gcd(10,1) << '\n';
+    cout << gcd(34986,3087) << '\n';
+    cout <<gcd(2907,1539) << '\n';
+    return 0;
 }

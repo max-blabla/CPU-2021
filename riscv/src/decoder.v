@@ -38,7 +38,7 @@ always @(posedge rst)begin
     op <= 0;
 end
 
-always @(instr_from_instr_queue) begin
+always @(*) begin
     instr = instr_from_instr_queue;
     rs1 = instr[19:15];
     rs2 = 0;
@@ -112,7 +112,7 @@ always @(instr_from_instr_queue) begin
         3'b001: op = `SLLI;
         3'b111: op = `ANDI;
         3'b101: begin
-            op = instr[30] ? `SRLI: `SRAI;
+            op = instr[30] ? `SRAI: `SRLI;
             imm[11:5] = 7'b0000000;
         end
         endcase
@@ -120,12 +120,12 @@ always @(instr_from_instr_queue) begin
     7'b0110011 : begin
         rs2 = instr[24:20];
         case(instr[14:12])
-        3'b000 : op = instr[30] ? `ADD : `SUB;
+        3'b000 : op = instr[30] ? `SUB : `ADD;
         3'b001 : op = `SLL;
         3'b010 : op = `SLT;
         3'b011 : op = `SLTU;
         3'b100 : op = `XOR;
-        3'b101 : op = instr[30] ? `SRL : `SRA;
+        3'b101 : op = instr[30] ? `SRA : `SRL;
         3'b110 : op = `OR;
         3'b111 : op = `AND;
         endcase

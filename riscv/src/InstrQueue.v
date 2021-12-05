@@ -8,11 +8,11 @@ module iq
 (
     input wire rst,
     input wire clk,
-    input wire is_stall_from_rob,
     input wire is_exception_from_rob,
     input wire is_stall_from_fc,
     input wire is_finish_from_fc,
     input wire is_instr_from_fc,
+    input wire is_ready_from_rf,
     input wire addr_from_fc,
     input wire[`PcLength:`Zero] pc_from_rob,
     input wire[`InstrLength:`Zero] instr_from_fc,
@@ -32,11 +32,14 @@ reg [`PcLength:`Zero] pc_queue[QueueStorage:`Zero];
 reg [PointerStorage:`Zero] store_pointer;
 reg is_empty_fc;
 reg input_instr_start;
+reg is_issue;
 reg is_empty_dc;//给dc的
 reg [`PcLength:`Zero] pc_dc;
 reg [`PcLength:`Zero] pc_fc;//指向尾部pc, 尾部即为传给fetcher的
 reg [`InstrLength:`Zero] instr_dc;
-reg [`PcLength:`Zero]test;
+reg [PointerStorage:`Zero]test;
+reg [`PcLength:`Zero]test2;
+reg [`PcLength:`Zero]lasttest;
 integer i;
 always @(posedge rst) begin
     pc_dc <= 0;
@@ -44,6 +47,7 @@ always @(posedge rst) begin
     head_pointer <=  0;
     tail_pointer <=  0;
     store_pointer <= 0;
+    is_issue <= `False;
     instr_dc <= 0;
     pc_queue[0] <= 0;
     for(i =  1; i <= QueueStorage ; ++i ) begin
@@ -65,6 +69,7 @@ always @(posedge clk) begin
         store_pointer <= 0;
         head_pointer <= 0;
         tail_pointer <= 0;
+        is_issue <= `False;
         pc_fc <= pc_from_rob;
         pc_queue[0] <= pc_from_rob;
         is_empty_dc <= `True;
@@ -81,12 +86,12 @@ always @(posedge clk) begin
             end
         end
         //如果不堵住就发送
+        lasttest <= pc_queue[store_pointer];
         if((head_pointer != store_pointer + 4'b0001)) begin
              if(is_stall_from_fc == `False) begin
-                test <= store_pointer + 4'b0001;
+                store_pointer = store_pointer+4'b0001;
+                pc_queue[store_pointer] <= pc_fc+4;
                 pc_fc <= pc_fc + 4;
-                pc_queue[store_pointer+4'b0001] <= pc_fc+4;
-                store_pointer <= store_pointer+4'b0001;
                 is_empty_fc <= `False; 
              end
         end
@@ -98,20 +103,25 @@ always @(posedge clk) begin
     //若头等于尾则说明空,则发送空信息
     //以及stall情况
     //反之头进1
-        if(is_stall_from_rob == `False ) begin
-            if(head_pointer == tail_pointer) begin
-                is_empty_dc <= `True;
-            end
-            else begin
-                pc_dc <= pc_queue[head_pointer];
-                instr_dc <= instr_queue[head_pointer];
-                is_empty_dc <= `False;
-                head_pointer <= head_pointer + 4'b0001;
-            end
-        end
-        else begin 
+    if(is_issue == `False) begin
+        if(head_pointer == tail_pointer) begin
             is_empty_dc <= `True;
-        end 
+            end
+        else begin
+            pc_dc <= pc_queue[head_pointer];
+            instr_dc <= instr_queue[head_pointer];
+            is_empty_dc <= `False;
+            head_pointer <= head_pointer + 4'b0001;
+            is_issue <= `True;
+        end
+    end
+    else begin 
+        is_empty_dc <= `True;
+    end 
+    if(is_ready_from_rf == `True && is_issue == `True) begin
+        is_issue <= `False;
+    end
+       
     //再发送尾到fetcher，这个组合做
     end
 end

@@ -74,11 +74,13 @@ module single_port_ram_sync
 
 reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0];
 reg [ADDR_WIDTH-1:0] q_addr_a;
-
+reg [31:0] test;
 always @(posedge clk)
   begin
-    if (we)
+    if (we) begin
         ram[addr_a] <= din_a;
+        test <= din_a;
+    end
     q_addr_a <= addr_a;
   end
 
@@ -90,7 +92,7 @@ initial begin
   for (i=0;i<2**ADDR_WIDTH;i=i+1) begin
     ram[i] = 0;
   end
-  $readmemh("Helloword.data", ram); // add test.data to vivado project or specify a valid file path
+  $readmemh("arraytest2.data", ram); // add test.data to vivado project or specify a valid file path
 end
 
 endmodule

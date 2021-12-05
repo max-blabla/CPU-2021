@@ -55,6 +55,8 @@ wire [4:0] rs2_from_dc_to_rf;
 wire [`DataLength:`Zero] imm_from_dc_to_rf;
 wire [`OpcodeLength:`Zero] op_from_dc_to_rf;
 
+wire is_ready_from_rf_to_iq;
+
 wire is_empty_from_rf_to_rob;
 wire [`PcLength:`Zero] pc_from_rf_to_rob;
 wire [`OpcodeLength:`Zero] op_from_rf_to_rob;
@@ -64,20 +66,22 @@ wire [`PcLength:`Zero] q2_from_rf_to_rob;
 wire [`DataLength:`Zero] v1_from_rf_to_rob;
 wire [`DataLength:`Zero] v2_from_rf_to_rob;
 wire [`DataLength:`Zero] imm_from_rf_to_rob;
+wire is_ready_from_rf_to_rob;
 
-wire is_stall_from_rob_to_iq;
 wire is_exception_from_rob_to_iq;
 wire [`PcLength:`Zero] jpc_from_rob_to_iq;
 
-wire is_empty_from_rob_to_rs;
-wire is_sl_from_rob_to_rs;
-wire [`OpcodeLength:`Zero] op_from_rob_to_rs;
-wire [`PcLength:`Zero] q1_from_rob_to_rs;
-wire [`PcLength:`Zero] q2_from_rob_to_rs;
-wire [`DataLength:`Zero] v1_from_rob_to_rs;
-wire [`DataLength:`Zero] v2_from_rob_to_rs;
-wire [`DataLength:`Zero] imm_from_rob_to_rs;
-wire [`PcLength:`Zero] pc_from_rob_to_rs;
+wire is_empty_from_rf_to_rs;
+wire is_sl_from_rf_to_rs;
+wire [`OpcodeLength:`Zero] op_from_rf_to_rs;
+wire [`PcLength:`Zero] q1_from_rf_to_rs;
+wire [`PcLength:`Zero] q2_from_rf_to_rs;
+wire [`DataLength:`Zero] v1_from_rf_to_rs;
+wire [`DataLength:`Zero] v2_from_rf_to_rs;
+wire [`DataLength:`Zero] imm_from_rf_to_rs;
+wire [`PcLength:`Zero] pc_from_rf_to_rs;
+wire is_ready_from_rf_to_rs;
+
 wire [`PcLength:`Zero] commit_pc_from_rob_to_rs;
 wire [`DataLength:`Zero] commit_data_from_rob_to_rs;
 wire is_commit_from_rob_to_rs;
@@ -89,22 +93,25 @@ wire [`DataLength:`Zero] v2_from_rs_to_alu;
 wire [`DataLength:`Zero] imm_from_rs_to_alu;
 wire [`PcLength:`Zero] pc_from_rs_to_alu;
 wire is_empty_from_rs_to_alu;
-wire is_stall_from_rs_to_alu;
+
+wire is_ready_from_rs_to_rf;
 
 wire [`DataLength:`Zero] data_from_alu_to_rob;
 wire [`PcLength:`Zero] pc_from_alu_to_rob;
 wire [`PcLength:`Zero] jpc_from_alu_to_rob;
 wire is_empty_from_alu_to_rob;
 
-wire [`DataLength:`Zero] v1_from_rob_to_slb;
-wire [`DataLength:`Zero] v2_from_rob_to_slb;
-wire [`DataLength:`Zero] imm_from_rob_to_slb;
-wire [`PcLength:`Zero] q1_from_rob_to_slb;
-wire [`PcLength:`Zero] q2_from_rob_to_slb;
-wire [`OpcodeLength:`Zero] op_from_rob_to_slb;
-wire [`PcLength:`Zero] pc_from_rob_to_slb;
-wire is_empty_from_rob_to_slb;
-wire is_sl_from_rob_to_slb;
+wire [`DataLength:`Zero] v1_from_rf_to_slb;
+wire [`DataLength:`Zero] v2_from_rf_to_slb;
+wire [`DataLength:`Zero] imm_from_rf_to_slb;
+wire [`PcLength:`Zero] q1_from_rf_to_slb;
+wire [`PcLength:`Zero] q2_from_rf_to_slb;
+wire [`OpcodeLength:`Zero] op_from_rf_to_slb;
+wire [`PcLength:`Zero] pc_from_rf_to_slb;
+wire is_empty_from_rf_to_slb;
+wire is_sl_from_rf_to_slb;
+wire is_ready_from_rf_to_slb;
+
 wire [`PcLength:`Zero] commit_pc_from_rob_to_slb;
 wire [`DataLength:`Zero] commit_data_from_rob_to_slb;
 wire is_commit_from_rob_to_slb;
@@ -117,11 +124,13 @@ wire [`DataLength:`Zero] commit_data_from_rob_to_rf;
 wire is_commit_from_rob_to_rf;
 wire [4:0] commit_rd_from_rob_to_rf;
 wire is_exception_from_rob_to_rf;
+wire is_ready_from_rob_to_rf;
  
 wire [`DataLength:`Zero] data_from_fc_to_slb;
 wire is_stall_from_fc_to_slb;
 wire is_instr_from_fc_to_slb;
 wire is_finish_from_fc_to_slb;
+wire is_store_from_fc_to_slb;
 
 wire [`DataLength:`Zero] data_from_slb_to_fc;
 wire [`DataLength:`Zero] addr_from_slb_to_fc;
@@ -136,24 +145,25 @@ wire [`DataLength:`Zero] data_from_slb_to_rob;
 wire [`PcLength:`Zero] pc_from_slb_to_rob;
 wire is_finish_from_slb_to_rob;
 
+wire is_ready_from_slb_to_rf;
 
 slb mslb(
     .rst                  (rst_in),
     .clk                  (clk_in),
-    .v1_from_rob          (v1_from_rob_to_slb),
-    .v2_from_rob          (v2_from_rob_to_slb),
-    .q1_from_rob          (q1_from_rob_to_slb),
-    .q2_from_rob          (q2_from_rob_to_slb),
-    .imm_from_rob         (imm_from_rob_to_slb),
-    .op_from_rob          (op_from_rob_to_slb),
+    .v1_from_rf          (v1_from_rf_to_slb),
+    .v2_from_rf          (v2_from_rf_to_slb),
+    .q1_from_rf          (q1_from_rf_to_slb),
+    .q2_from_rf          (q2_from_rf_to_slb),
+    .imm_from_rf         (imm_from_rf_to_slb),
+    .op_from_rf          (op_from_rf_to_slb),
     .commit_data_from_rob (commit_data_from_rob_to_rs),
     .is_exception_from_rob(is_exception_from_rob_to_slb),
-    .is_empty_from_rob    (is_empty_from_rob_to_slb),
+    .is_empty_from_rf    (is_empty_from_rf_to_slb),
     .is_commit_from_rob   (is_commit_from_rob_to_rs),
     .is_stall_from_fc     (is_stall_from_fc_to_slb),
     .commit_pc_from_rob   (commit_pc_from_rob_to_rs),
-    .pc_from_rob          (pc_from_rob_to_slb),
-    .is_sl_from_rob       (is_sl_from_rob_to_slb),
+    .pc_from_rf          (pc_from_rf_to_slb),
+    .is_sl_from_rf       (is_sl_from_rf_to_slb),
     .data_from_fc         (data_from_fc_to_slb),
     .is_instr_from_fc     (is_instr_from_fc_to_slb),
     .is_finish_from_fc    (is_finish_from_fc_to_slb),
@@ -162,11 +172,13 @@ slb mslb(
     .is_empty_to_fc       (is_empty_from_slb_to_fc),
     .is_store_to_fc       (is_store_from_slb_to_fc),
     .is_receive_to_fc     (is_receive_from_slb_to_fc),
-    .is_stall_to_rob      (is_stall_from_slb_to_rob),
+    .is_ready_to_rf      (is_ready_from_slb_to_rf),
+    .is_ready_from_rf      (is_ready_from_rf_to_slb),
     .is_finish_to_rob     (is_finish_from_slb_to_rob),
     .data_to_rob          (data_from_slb_to_rob),
     .pc_to_rob            (pc_from_slb_to_rob),
-    .aim_to_fc            (aim_from_slb_to_fc)
+    .aim_to_fc            (aim_from_slb_to_fc),
+    .is_store_from_fc     (is_store_from_fc_to_slb)     
 );
 
 alu malu(
@@ -187,17 +199,17 @@ alu malu(
 rs mrs(
     .rst                      (rst_in),
     .clk                      (clk_in),
-    .is_empty_from_rob        (is_empty_from_rob_to_rs),
-    .is_sl_from_rob           (is_sl_from_rob_to_rs),
+    .is_empty_from_rf        (is_empty_from_rf_to_rs),
+    .is_sl_from_rf           (is_sl_from_rf_to_rs),
     .is_exception_from_rob    (is_exception_from_rob_to_rs),
     .is_commit_from_rob       (is_commit_from_rob_to_rs),
-    .op_from_rob              (op_from_rob_to_rs),
-    .v1_from_rob              (v1_from_rob_to_rs),
-    .v2_from_rob              (v2_from_rob_to_rs),
-    .q1_from_rob              (q1_from_rob_to_rs),
-    .q2_from_rob              (q2_from_rob_to_rs),
-    .imm_from_rob             (imm_from_rob_to_rs),
-    .pc_from_rob              (pc_from_rob_to_rs),
+    .op_from_rf              (op_from_rf_to_rs),
+    .v1_from_rf              (v1_from_rf_to_rs),
+    .v2_from_rf              (v2_from_rf_to_rs),
+    .q1_from_rf              (q1_from_rf_to_rs),
+    .q2_from_rf              (q2_from_rf_to_rs),
+    .imm_from_rf             (imm_from_rf_to_rs),
+    .pc_from_rf              (pc_from_rf_to_rs),
     .commit_data_from_rob     (commit_data_from_rob_to_rs),
     .commit_pc_from_rob       (commit_pc_from_rob_to_rs),
     .op_to_alu                (op_from_rs_to_alu),
@@ -205,7 +217,8 @@ rs mrs(
     .v2_to_alu                (v2_from_rs_to_alu),
     .imm_to_alu               (imm_from_rs_to_alu),
     .pc_to_alu                (pc_from_rs_to_alu),
-    .is_stall_to_rob          (is_stall_from_rs_to_alu),
+    .is_ready_to_rf      (is_ready_from_rs_to_rf),
+    .is_ready_from_rf      (is_ready_from_rf_to_rs),
     .is_empty_to_alu          (is_empty_from_rs_to_alu)
 );
 rob mrob(
@@ -214,8 +227,8 @@ rob mrob(
     .is_empty_from_reg                  (is_empty_from_rf_to_rob),
     .is_finish_from_alu                 (is_finish_from_alu_to_rob),
     .is_finish_from_slb                 (is_finish_from_slb_to_rob),
-    .is_stall_from_slb                  (is_stall_from_slb_to_rob),
-    .is_stall_from_rs                   (is_stall_from_rs_to_alu),
+    .is_ready_to_rf                     (is_ready_from_rob_to_rf),
+    .is_ready_from_rf                   (is_ready_from_rf_to_rob),
     .is_exception_from_rob              (is_exception_from_rob_to_rob),
     .pc_from_reg                        (pc_from_rf_to_rob),
     .data_from_alu                      (data_from_alu_to_rob),
@@ -223,43 +236,18 @@ rob mrob(
     .jpc_from_alu                       (jpc_from_alu_to_rob),
     .data_from_slb                      (data_from_slb_to_rob),
     .pc_from_slb                        (pc_from_slb_to_rob),
-    .op_from_reg                        (op_from_rf_to_rob),
-    .v1_from_reg                        (v1_from_rf_to_rob),
-    .v2_from_reg                        (v2_from_rf_to_rob),
-    .q1_from_reg                        (q1_from_rf_to_rob),
-    .q2_from_reg                        (q2_from_rf_to_rob),
-    .imm_from_reg                       (imm_from_rf_to_rob),
     .rd_from_reg                        (rd_from_rf_to_rob),
-    .is_stall_to_instr_queue            (is_stall_from_rob_to_iq),
     .is_exception_to_instr_queue        (is_exception_from_rob_to_iq),
     .is_exception_to_reg                (is_exception_from_rob_to_rf),
     .is_exception_to_rs                 (is_exception_from_rob_to_rs),
     .is_exception_to_slb                (is_exception_from_rob_to_slb),
     .is_exception_to_fc                 (is_exception_from_rob_to_fc),
     .is_exception_to_rob                (is_exception_from_rob_to_rob),
-    .is_empty_to_rs                     (is_empty_from_rob_to_rs),
-    .is_empty_to_slb                    (is_empty_from_rob_to_slb),
-    .is_sl_to_rs                        (is_sl_from_rob_to_rs),
-    .is_sl_to_slb                       (is_sl_from_rob_to_slb),
     .pc_to_instr_queue                  (jpc_from_rob_to_iq),
-    .pc_to_rs                           (pc_from_rob_to_rs),
-    .pc_to_slb                          (pc_from_rob_to_slb),
     .commit_rd_to_reg                   (commit_rd_from_rob_to_rf),
     .commit_pc_to_rs                    (commit_pc_from_rob_to_rs),
     .commit_pc_to_slb                   (commit_pc_from_rob_to_slb),
     .commit_pc_to_reg                   (commit_pc_from_rob_to_rf),
-    .v1_to_rs                           (v1_from_rob_to_rs),
-    .v2_to_rs                           (v2_from_rob_to_rs),
-    .q1_to_rs                           (q1_from_rob_to_rs),
-    .q2_to_rs                           (q2_from_rob_to_rs),
-    .imm_to_rs                          (imm_from_rob_to_rs),
-    .op_to_rs                           (op_from_rob_to_rs),
-    .v1_to_slb                          (v1_from_rob_to_slb),
-    .v2_to_slb                          (v2_from_rob_to_slb),
-    .q1_to_slb                          (q1_from_rob_to_slb),
-    .q2_to_slb                          (q2_from_rob_to_slb),
-    .imm_to_slb                         (imm_from_rob_to_slb),
-    .op_to_slb                          (op_from_rob_to_slb),
     .commit_data_to_rs                  (commit_data_from_rob_to_rs),
     .commit_data_to_slb                 (commit_data_from_rob_to_slb),
     .commit_data_to_reg                 (commit_data_from_rob_to_rf),
@@ -268,36 +256,55 @@ rob mrob(
     .is_commit_to_slb                   (is_commit_from_rob_to_slb)
 );
 rf mrf(
-    .rst                      (rst_in),
-    .clk                      (clk_in),
-    .is_empty_from_decoder    (is_empty_from_dc_to_rf),
-    .is_commit_from_rob       (is_commit_from_rob_to_rf),
-    .is_exception_from_rob    (is_exception_from_rob_to_rf),
-    .pc_from_rob              (commit_pc_from_rob_to_rf),
-    .rd_from_rob              (commit_rd_from_rob_to_rf),
-    .data_from_rob            (commit_data_from_rob_to_rf),
-    .rd_from_decoder          (rd_from_dc_to_rf),
-    .pc_from_decoder          (pc_from_dc_to_rf),
-    .rs1_from_decoder         (rs1_from_dc_to_rf),
-    .rs2_from_decoder         (rs2_from_dc_to_rf),
-    .imm_from_decoder         (imm_from_dc_to_rf),
-    .op_from_decoder          (op_from_dc_to_rf),
-    .is_empty_to_rob          (is_empty_from_rf_to_rob),
-    .rd_to_rob                (rd_from_rf_to_rob),
-    .imm_to_rob               (imm_from_rf_to_rob),
-    .pc_to_rob                (pc_from_rf_to_rob),
-    .v1_to_rob                (v1_from_rf_to_rob),
-    .v2_to_rob                (v2_from_rf_to_rob),
-    .q1_to_rob                (q1_from_rf_to_rob),
-    .q2_to_rob                (q2_from_rf_to_rob),
-    .op_to_rob                (op_from_rf_to_rob)
+    .rst(rst_in),
+    .clk(clk_in),
+    .is_empty_from_decoder(is_empty_from_dc_to_rf),
+    .is_commit_from_rob(is_commit_from_rob_to_rf),
+    .is_exception_from_rob(is_exception_from_rob_to_rf),
+    .is_ready_to_iq(is_ready_from_rf_to_iq),
+    .is_ready_to_slb(is_ready_from_rf_to_slb),
+    .is_ready_to_rs(is_ready_from_rf_to_rs),
+    .is_ready_to_rob(is_ready_from_rf_to_rob),
+    .is_ready_from_rob(is_ready_from_rob_to_rf),
+    .is_ready_from_slb(is_ready_from_slb_to_rf),
+    .is_ready_from_rs(is_ready_from_rs_to_rf),
+    .pc_from_rob(commit_pc_from_rob_to_rf),
+    .rd_from_rob(commit_rd_from_rob_to_rf),
+    .data_from_rob(commit_data_from_rob_to_rf),
+    .rd_from_decoder(rd_from_dc_to_rf),
+    .pc_from_decoder(pc_from_dc_to_rf),
+    .rs1_from_decoder(rs1_from_dc_to_rf),
+    .rs2_from_decoder(rs2_from_dc_to_rf),
+    .imm_from_decoder(imm_from_dc_to_rf),
+    .op_from_decoder(op_from_dc_to_rf),
+    .is_empty_to_rob(is_empty_from_rf_to_rob),
+    .pc_to_rob(pc_from_rf_to_rob),
+    .rd_to_rob(rd_from_rf_to_rob),
+    .v1_to_rs(v1_from_rf_to_rs),
+    .v2_to_rs(v2_from_rf_to_rs),
+    .q1_to_rs(q1_from_rf_to_rs),
+    .q2_to_rs(q2_from_rf_to_rs),
+    .imm_to_rs(imm_from_rf_to_rs),
+    .op_to_rs(op_from_rf_to_rs),
+    .v1_to_slb(v1_from_rf_to_slb),
+    .v2_to_slb(v2_from_rf_to_slb),
+    .q1_to_slb(q1_from_rf_to_slb),
+    .q2_to_slb(q2_from_rf_to_slb),
+    .imm_to_slb(imm_from_rf_to_slb),
+    .op_to_slb(op_from_rf_to_slb),
+    .pc_to_rs(pc_from_rf_to_rs),
+    .pc_to_slb(pc_from_rf_to_slb),
+    .is_empty_to_rs(is_empty_from_rf_to_rs),
+    .is_empty_to_slb(is_empty_from_rf_to_slb),
+    .is_sl_to_rs(is_sl_from_rf_to_rs),
+    .is_sl_to_slb(is_sl_from_rf_to_slb)
 );
 dc mdc(
     .rst                        (rst_in),
     .is_empty_from_instr_queue  (is_empty_from_iq_to_dc),
     .pc_from_instr_queue        (pc_from_iq_to_dc),
     .instr_from_instr_queue     (instr_from_iq_to_dc),
-    .is_empty_to_reg            (is_empty_from_dc_to_rf),
+    .is_empty_to_reg            (is_empty_from_dc_to_rf),    
     .rd_to_reg                  (rd_from_dc_to_rf),
     .pc_to_reg                  (pc_from_dc_to_rf),
     .rs1_to_reg                 (rs1_from_dc_to_rf),
@@ -308,7 +315,7 @@ dc mdc(
 iq miq(
     .rst                                     ( rst_in                                      ),
     .clk                                     ( clk_in                                   ),
-    .is_stall_from_rob                       ( is_stall_from_rob_to_iq             ),
+    .is_ready_from_rf                        (is_ready_from_rf_to_iq),
     .is_exception_from_rob                   ( is_exception_from_rob_to_iq ),
     .is_stall_from_fc                        ( is_stall_from_fc_to_iq                         ),
     .is_finish_from_fc                       ( is_finish_from_fc_to_iq                        ),
@@ -339,6 +346,7 @@ fc mfc(
   .is_stall_to_iq             (is_stall_from_fc_to_iq),
   .is_instr_to_slb            (is_instr_from_fc_to_slb),
   .is_store_to_ram            (mem_wr),
+  .is_store_to_slb            (is_store_from_fc_to_slb),
   .is_finish_to_slb           (is_finish_from_fc_to_slb),
   .is_finish_to_iq            (is_finish_from_fc_to_iq),
   .addr_to_ram                (mem_a),
@@ -351,8 +359,7 @@ fc mfc(
 
 
 initial begin
-    $dumpfile("test.vcd");
-    $dumpvars(0,cpu);
+
 end
 always @(posedge clk_in)
   begin  
