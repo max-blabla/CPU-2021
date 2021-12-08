@@ -14,21 +14,34 @@ module dc
 
 
     output  wire    is_empty_to_reg,
+    output  wire    is_empty_to_rob,
+    output  wire    is_empty_to_rs,
+    output  wire    is_empty_to_slb,
+    output  wire    is_sl_to_slb,
+    output  wire    is_sl_to_rs,
     output  wire    [RdLength:`Zero]        rd_to_reg,
     output  wire    [`PcLength:`Zero]       pc_to_reg,
     output  wire    [Rs1Length:`Zero]       rs1_to_reg,
     output  wire    [Rs2Length:`Zero]       rs2_to_reg,
-    output  wire    [`DataLength:`Zero]     imm_to_reg,
-    output  wire    [`OpcodeLength:`Zero]   op_to_reg
+    output  wire    [`DataLength:`Zero]     imm_to_slb,
+    output  wire    [`OpcodeLength:`Zero]   op_to_slb,
+    output  wire    [`PcLength:`Zero]       pc_to_slb,
+    output  wire    [RdLength:`Zero]        rd_to_rob,
+    output  wire    [`PcLength:`Zero]       pc_to_rob,
+    output  wire    [`DataLength:`Zero]     imm_to_rs,
+    output  wire    [`OpcodeLength:`Zero]   op_to_rs,
+    output  wire    [`PcLength:`Zero]       pc_to_rs
 );
 reg     [RdLength:`Zero]    rd;
 reg     [`PcLength:`Zero]   pc;
 reg     [Rs1Length:`Zero]   rs1;
 reg     [Rs2Length:`Zero]   rs2;
+reg     is_sl;
 reg     [`OpcodeLength:`Zero]  op;
 reg     [`DataLength:`Zero]   imm;
 reg     [`DataLength:`Zero]   instr;
 always @(posedge rst)begin
+    is_sl <= `False;
     pc  <= 0;
     rs1 <= 0; 
     rs2 <= 0;
@@ -47,25 +60,30 @@ always @(*) begin
     rd = instr[11:7];
     case (instr[6:0])
     7'b0110111 : begin
+        is_sl = `False;
         op = `LUI;
         imm = instr[31:12]; 
         rs1 = 0;
     end
     7'b0010111 : begin
+        is_sl = `False;
         op = `AUIPC;
         imm = instr[31:12];
         rs1 = 0;
     end
     7'b1101111 : begin
+        is_sl = `False;
         op = `JAL;
         rs1 = 0;
         imm[20] = instr[31];imm[10:1] = instr[30:21];imm[11]=instr[20];imm[19:12]=instr[19:12];
     end
     7'b1100111 : begin
+        is_sl = `False;
         op = `JALR;
         imm[11:0] = instr[31:20];
     end
     7'b1100011 : begin
+       is_sl = `False;
        rd  = 0;
        rs2 = instr[24:20];
        imm[12] = instr[31];imm[10:5]=instr[30:25];imm[4:1]=instr[11:8];imm[11]=instr[7];
@@ -82,6 +100,7 @@ always @(*) begin
        endcase
     end
     7'b0000011 : begin
+        is_sl = `True;
         imm[11:0] = instr[31:20];
         case(instr[14:12])
         3'b000: op = `LB;
@@ -92,6 +111,7 @@ always @(*) begin
         endcase
     end
     7'b0100011 : begin
+        is_sl = `True;
         rd = 0;
         rs2 = instr[24:20];
         imm[4:0] = instr[11:7];imm[11:5] = instr[31:25];
@@ -102,6 +122,7 @@ always @(*) begin
         endcase
     end
     7'b0010011 : begin
+        is_sl = `False;
         imm[11:0] = instr[31:20];
         case(instr[14:12])
         3'b000: op = `ADDI;
@@ -118,6 +139,7 @@ always @(*) begin
         endcase
     end
     7'b0110011 : begin
+        is_sl = `False;
         rs2 = instr[24:20];
         case(instr[14:12])
         3'b000 : op = instr[30] ? `SUB : `ADD;
@@ -138,7 +160,18 @@ assign  pc_to_reg   =   pc;
 assign  rs1_to_reg  =   rs1;
 assign  rs2_to_reg  =   rs2;
 assign  rd_to_reg   =   rd;
-assign  imm_to_reg  =   imm;
-assign  is_empty_to_reg    =  is_empty_from_instr_queue;
-assign  op_to_reg = op;
+assign  is_empty_to_reg  =  is_empty_from_instr_queue;
+assign  is_empty_to_rob = is_empty_from_instr_queue;
+assign  is_empty_to_rs = is_empty_from_instr_queue;
+assign  is_empty_to_slb = is_empty_from_instr_queue;
+assign  is_sl_to_rs = is_sl;
+assign  is_sl_to_slb = is_sl;
+assign  pc_to_rob = pc;
+assign  rd_to_rob = rd;
+assign  pc_to_slb = pc;
+assign  op_to_slb = op;
+assign  imm_to_slb = imm;
+assign  pc_to_rs = pc;
+assign  op_to_rs = op;
+assign  imm_to_rs = imm;
 endmodule

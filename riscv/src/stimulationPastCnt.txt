@@ -1,0 +1,23 @@
+basicopt2
+arraytest1
+arraytest2
+gcd
+lvalue2
+expr
+statementtest
+looper
+
+
+//不de了，fuck
+tak   stuck
+magic stuck
+qsort stuck //可能为cache 跳区
+hamoi stuck
+
+
+bulgarian wrong
+
+queens bad  //这个不明白，还待观察
+
+
+superloop deadloop //fuck

@@ -8,21 +8,18 @@ module rob #
 (
     input wire clk,
     input wire rst,
-    input wire is_empty_from_reg,
+    input wire is_empty_from_dc,
     input wire is_finish_from_alu,
     input wire is_finish_from_slb,
-    input wire is_stall_from_slb,
-    input wire is_stall_from_rs,
     input wire is_exception_from_rob,
-    input wire[`PcLength:`Zero] pc_from_reg,
     input wire[`DataLength:`Zero] data_from_alu,
     input wire[`DataLength:`Zero] pc_from_alu,
     input wire[`DataLength:`Zero] jpc_from_alu,
     input wire[`DataLength:`Zero] data_from_slb,
     input wire[`DataLength:`Zero] pc_from_slb,
-    input wire[RdLength:`Zero] rd_from_reg,
-    input wire is_ready_from_rf,
-    output wire is_ready_to_rf,
+    input wire[RdLength:`Zero] rd_from_dc,
+    input wire[`PcLength:`Zero] pc_from_dc,
+    output wire is_ready_to_iq,
     output wire is_exception_to_instr_queue,
     output wire is_exception_to_reg,
     output wire is_exception_to_rs,
@@ -46,6 +43,7 @@ reg [`PcLength:`Zero] jpc_storage[BufferLength:`Zero];
 reg [`PcLength:`Zero] pc_storage[BufferLength:`Zero];
 reg [RdLength:`Zero] rd_storage[BufferLength:`Zero];
 reg finish[BufferLength:`Zero];
+reg [63:0] cnt;
 //reg [`OpcodeLength:`Zero] op_storage[BufferLength:`Zero];
 //reg status_storage[BufferLength:`Zero];
 reg [PointerLength:`Zero] head_pointer;
@@ -62,6 +60,7 @@ reg is_ready;
 integer test;
 integer i;
 always @(posedge rst) begin
+    cnt <= 0;
     is_exception <=0;
     is_ready <= 0;
     is_finish <= 0;
@@ -103,6 +102,10 @@ always @(posedge clk) begin
         //然后提交到提交池，更新empty
         if(finish[head_pointer] == `True && head_pointer != tail_pointer) begin
             $display("%d %d",pc_storage[head_pointer],data_storage[head_pointer]);
+            cnt <= cnt + 1;
+            if((cnt + 1)%10000 == 0) begin
+                $display(cnt);
+            end
       //      $display(jpc_storage[head_pointer]);
             is_finish <= `True;
             commit_data <= data_storage[head_pointer];
@@ -112,22 +115,21 @@ always @(posedge clk) begin
             //更新跳转
             if(jpc_storage[head_pointer] != pc_storage[head_pointer] + 4) begin
                 is_exception <= `True;
-                commit_jpc <= jpc_storage[head_pointer];
             end
             else begin
                 is_exception <= `False;
-                commit_jpc <= jpc_storage[head_pointer];
             end
+            commit_jpc <= jpc_storage[head_pointer];
         end
         else begin
             is_finish <= `False;
         end
-        if(head_pointer != tail_pointer + 4'b0001) is_ready <= `True;
+        if(head_pointer != tail_pointer + 4'b0011 && head_pointer != tail_pointer + 4'b0010 && head_pointer != tail_pointer + 4'b0001) is_ready <= `True;
         else is_ready <= `False;
-        if(is_ready_from_rf == `True && is_ready == `True) begin
-            rd_storage[tail_pointer] <= rd_from_reg;
-            pc_storage[tail_pointer] <= pc_from_reg;
-            jpc_storage[tail_pointer] <= pc_from_reg+4;
+        if(is_empty_from_dc == `False) begin
+            rd_storage[tail_pointer] <= rd_from_dc;
+            pc_storage[tail_pointer] <= pc_from_dc;
+            jpc_storage[tail_pointer] <= pc_from_dc+4;
             finish[tail_pointer] <= `False;
             tail_pointer <= tail_pointer + 4'b0001;
         end
@@ -143,18 +145,12 @@ always @(posedge clk) begin
         commit_jpc <= 0;
         tail_pointer <= 0;
         head_pointer <= 0;
-        //for(i = 0 ; i < BufferLength ; ++i) begin
-        //    rd_storage[i] <= 0;
-        //    pc_storage[i] <= 0;
-        //    data_storage[i] <= 0;
-        //    finish[i] <= 0;
-        //end
     end
 end
 assign is_commit_to_reg = is_finish;
 assign is_commit_to_slb = is_finish;
 assign is_commit_to_rs = is_finish;
-assign is_ready_to_rf = is_ready;
+assign is_ready_to_iq = is_ready;
 assign is_exception_to_instr_queue = is_exception;
 assign is_exception_to_reg = is_exception;
 assign is_exception_to_rs = is_exception;

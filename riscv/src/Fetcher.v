@@ -17,26 +17,23 @@ module fc
     input wire[`DataLength:`Zero] data_from_slb,
     input wire is_empty_from_slb,
     input wire is_store_from_slb,
-    input wire is_empty_from_iq,
-    input wire [`PcLength:`Zero] addr_from_iq,
-    input wire is_receive_from_iq,
-    input wire is_receive_from_slb,
+    input wire is_empty_from_ic,
+    input wire [`PcLength:`Zero] addr_from_ic,
     input wire is_exception_from_rob,
     input wire [CounterLength:`Zero] aim_from_slb,
-    output wire is_instr_to_iq,
+    output wire is_instr_to_ic,
     output wire is_stall_to_slb,
-    output wire is_stall_to_iq,
+    output wire is_stall_to_ic,
     output wire is_instr_to_slb,
     output wire is_store_to_slb,
     output wire is_store_to_ram,
     output wire is_finish_to_slb,
-    output wire is_finish_to_iq,
+    output wire is_finish_to_ic,
     output wire [`PcLength:`Zero] addr_to_ram,
     output wire [`UnsignedCharLength:`Zero] data_to_ram,
   //  output wire [`PcLength:`Zero] pc_to_slb,
     output wire [`DataLength:`Zero] data_to_slb,
-    output wire [`DataLength:`Zero] data_to_iq,
-    output wire [`DataLength:`Zero] addr_to_iq
+    output wire [`DataLength:`Zero] data_to_ic
 );
 reg [`PcLength:`Zero] Addr[FetcherLength:`Zero];
 reg [`DataLength:`Zero] Data[FetcherLength:`Zero];
@@ -51,7 +48,6 @@ reg [PointerLength:`Zero] tail_pointer;
 reg [`DataLength:`Zero] addr;
 reg [`UnsignedCharLength:`Zero] char;
 reg [`DataLength:`Zero] data;
-reg [`DataLength:`Zero] addr_iq;
 reg is_store_slb;
 reg is_stall;
 reg is_past;
@@ -121,7 +117,6 @@ always @(posedge clk) begin
                                 testAim <= aim_status[head_pointer];
                                 is_instr <= instr_status[head_pointer];
                                 data <= Data[head_pointer];
-                                addr_iq <= Addr[head_pointer];
                                 is_store <= `False;
                                 is_finish <= `True;
                                 is_past <= `False;
@@ -138,12 +133,6 @@ always @(posedge clk) begin
                             cnt <= cnt+1;
                         end
                         else begin
-                         //   $display("?");
-                         //   $display("\n");
-                        //    $display(cnt);
-                         //   $display(Data[head_pointer]);
-                         //   $display(aim_status[head_pointer]);
-                        //    $display("\n");
                             testchar <= Data[head_pointer];
                             case (cnt)
                             2'b01:char <= Data[head_pointer][15:8];
@@ -155,8 +144,6 @@ always @(posedge clk) begin
                                 testAim <= aim_status[head_pointer];
                                 is_instr <= instr_status[head_pointer];
                                 data <= Data[head_pointer];
-                        //        char <= 65;
-                                addr_iq <= Addr[head_pointer];
                                 is_store <= `False;
                                 is_finish <= `True;
                                 is_past <= `False;
@@ -164,10 +151,8 @@ always @(posedge clk) begin
                             cnt <= cnt+1;
                         end
                     end
-                    
                 end
             end
-           
         end
         else begin
             if(head_pointer != tail_pointer) begin
@@ -180,22 +165,22 @@ always @(posedge clk) begin
         end
         if(head_pointer != tail_pointer + 5'b00001 && head_pointer != tail_pointer + 5'b00010 && head_pointer != tail_pointer + 5'b00011) begin
                 is_stall <= `False;
-                if(is_empty_from_iq ==`False && is_empty_from_slb == `False) begin
+                if(is_empty_from_ic ==`False && is_empty_from_slb == `False) begin
                     Addr[tail_pointer] <= addr_from_slb;
                     Data[tail_pointer] <= data_from_slb;
                     instr_status[tail_pointer] <= `False;
                     valid_status[tail_pointer] <= `True;
                     store_status[tail_pointer] <= is_store_from_slb;
                     aim_status[tail_pointer] <= aim_from_slb;
-                    Addr[tail_pointer+5'b00001] <= addr_from_iq;
-                    testAddr2 <= addr_from_iq;
+                    Addr[tail_pointer+5'b00001] <= addr_from_ic;
+                    testAddr2 <= addr_from_ic;
                     valid_status[tail_pointer+5'b00001] <= `True;
                     instr_status[tail_pointer+5'b00001] <= `True;
                     store_status[tail_pointer+5'b00001] <= `False;
                     aim_status[tail_pointer+5'b00001] <= 2'b00;
                     tail_pointer <= tail_pointer + 5'b00010;
                 end
-                else if(is_empty_from_iq ==`True && is_empty_from_slb == `False)begin
+                else if(is_empty_from_ic ==`True && is_empty_from_slb == `False)begin
                     Addr[tail_pointer] <= addr_from_slb;
                     aim_status[tail_pointer] <= aim_from_slb;
                     Data[tail_pointer] <= data_from_slb;
@@ -204,10 +189,9 @@ always @(posedge clk) begin
                     store_status[tail_pointer] <= is_store_from_slb;
                     tail_pointer <= tail_pointer + 5'b00001;      
                 end
-                else if(is_empty_from_iq ==`False && is_empty_from_slb == `True)begin
-  
+                else if(is_empty_from_ic ==`False && is_empty_from_slb == `True)begin
                     aim_status[tail_pointer] <= 2'b00;
-                    Addr[tail_pointer] <= addr_from_iq;
+                    Addr[tail_pointer] <= addr_from_ic;
                     instr_status[tail_pointer] <= `True;
                     valid_status[tail_pointer] <= `True;
                     store_status[tail_pointer] <= `False;
@@ -226,17 +210,16 @@ always @(posedge clk) begin
         end
     end
 end
-assign is_instr_to_iq = is_instr;
+assign is_instr_to_ic = is_instr;
 assign is_instr_to_slb = is_instr;
-assign is_stall_to_iq = is_stall;
+assign is_stall_to_ic = is_stall;
 assign is_stall_to_slb = is_stall;
 assign is_store_to_ram = is_store;
-assign is_finish_to_iq = is_finish;
+assign is_finish_to_ic = is_finish;
 assign is_finish_to_slb = is_finish;
 assign is_store_to_slb = is_store_slb;
 assign addr_to_ram = addr;
 assign data_to_ram = char;
 assign data_to_slb = data;
-assign data_to_iq = data;
-assign addr_to_iq = addr_iq;
+assign data_to_ic = data;
 endmodule
