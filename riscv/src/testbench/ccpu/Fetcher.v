@@ -1,225 +1,366 @@
 `include "parameters.v"
-module fc
-#
-(
-    parameter FetcherLength = 31,
+
+
+module fc #(
+    parameter BufferLength = 31,
     parameter PointerLength = 4,
-    parameter CounterLength = 1,
-    parameter PointerOne = 5'b00001,
-    parameter PointerTwo = 5'b00010,
-    parameter PointerThree = 5'b00011
+    parameter CntLength = 1,
+    parameter RdLength = 4
 )
 (
     input rst,
+    input is_full_from_io,
+    input rdy,
     input clk,
-    input wire[`UnsignedCharLength:`Zero] data_from_ram,
-    input wire[`PcLength:`Zero] addr_from_slb,
-    input wire[`DataLength:`Zero] data_from_slb,
-    input wire is_empty_from_slb,
-    input wire is_store_from_slb,
-    input wire is_empty_from_ic,
-    input wire [`PcLength:`Zero] addr_from_ic,
-    input wire is_exception_from_rob,
-    input wire [CounterLength:`Zero] aim_from_slb,
-    output wire is_instr_to_ic,
-    output wire is_stall_to_slb,
-    output wire is_stall_to_ic,
-    output wire is_instr_to_slb,
-    output wire is_store_to_slb,
-    output wire is_store_to_ram,
-    output wire is_finish_to_slb,
-    output wire is_finish_to_ic,
-    output wire [`PcLength:`Zero] addr_to_ram,
-    output wire [`UnsignedCharLength:`Zero] data_to_ram,
-  //  output wire [`PcLength:`Zero] pc_to_slb,
-    output wire [`DataLength:`Zero] data_to_slb,
-    output wire [`DataLength:`Zero] data_to_ic
+    input is_empty_from_ic,
+    input is_empty_from_dc,
+    input is_exception_from_rob,
+    input is_commit_from_rob,
+    input is_sl_from_dc,
+    input [`PcLength:`Zero] addr_from_ic,
+    input [`UnsignedCharLength:`Zero] data_from_ram,
+    input [`PcLength:`Zero] pc_from_dc,
+    input [`DataLength:`Zero] imm_from_dc,
+    input [`OpcodeLength:`Zero] op_from_dc,
+    input [`PcLength:`Zero] q1_from_rf,
+    input [`PcLength:`Zero] q2_from_rf,
+    input [`DataLength:`Zero] v1_from_rf,
+    input [`DataLength:`Zero] v2_from_rf,
+    input [`PcLength:`Zero] commit_pc_from_rob,
+    input [`DataLength:`Zero] commit_data_from_rob,
+
+    
+    output is_commit_to_rob,
+    output is_commit_to_ic,
+    output is_ready_to_iq,
+    output is_instr_to_rob,
+    output is_instr_to_ic,
+    output is_store_to_ram,
+    output [`DataLength:`Zero] data_to_rob,
+    output [`DataLength:`Zero] data_to_ic,
+    output [`PcLength:`Zero] pc_to_rob,
+    output [`PcLength:`Zero] addr_to_ram,
+    output [`UnsignedCharLength:`Zero] data_to_ram
 );
-reg [`PcLength:`Zero] Addr[FetcherLength:`Zero];
-reg [`DataLength:`Zero] Data[FetcherLength:`Zero];
-reg instr_status[FetcherLength:`Zero];//是否是指令
-reg store_status[FetcherLength:`Zero];
-reg valid_status[FetcherLength:`Zero];
-reg [CounterLength:`Zero] aim_status[FetcherLength:`Zero];
-reg [CounterLength:`Zero] cnt;
+reg [`PcLength:`Zero] Pc [BufferLength:`Zero];
+reg [`PcLength:`Zero] Q1 [BufferLength:`Zero];
+reg [`PcLength:`Zero] Q2 [BufferLength:`Zero];
+reg [`DataLength:`Zero] V1 [BufferLength:`Zero];
+reg [`DataLength:`Zero] V2 [BufferLength:`Zero];
+reg [`DataLength:`Zero] Imm [BufferLength:`Zero];
+reg [PointerLength:`Zero] comp_pointer;
 reg [PointerLength:`Zero] head_pointer;
 reg [PointerLength:`Zero] tail_pointer;
-//下面为提交池
-reg [`DataLength:`Zero] addr;
+reg [PointerLength:`Zero] dtail_pointer;
+reg  store_status[BufferLength:`Zero];
+reg instr_status[BufferLength:`Zero];
+reg [CntLength:`Zero] aim_status[BufferLength:`Zero];
+reg comp_status[BufferLength:`Zero];
+reg [`PcLength:`Zero]pc;
+
 reg [`UnsignedCharLength:`Zero] char;
-reg [`DataLength:`Zero] data;
-reg is_store_slb;
-reg is_stall;
-reg is_past;
-reg is_start;
-reg is_instr;
-reg is_store;
+reg [CntLength:`Zero]cnt;
+reg [`PcLength:`Zero] addr; 
+reg [CntLength:`Zero] aim;
 reg is_finish;
-reg test;
-reg [`DataLength:`Zero] testAddr;
-reg [`DataLength:`Zero] testAddr2;
-reg [1:0]testAim;
-reg [`UnsignedCharLength:`Zero] testchar;
-reg [31:0]ttt;
+reg is_instr;
+reg is_start;
+reg is_commit;
+reg [`DataLength:`Zero] data;
+reg is_store;
+reg is_switch;
+reg is_pass;
+reg is_ready;
+
+reg en_empty_dc;
+reg en_empty_ic;
+reg en_exception;
+reg en_commit;
+reg en_sl;
+reg en_rst;
+reg en_rdy;
+reg en_full_io;
+
+reg [`DataLength:`Zero] test;
+reg [`DataLength:`Zero] test2;
+reg [`DataLength:`Zero] test3;
+reg [`DataLength:`Zero] test4;
+
 integer i;
-always @(posedge rst) begin
-    is_stall <= 0;
-    is_instr <= 0;
-    is_store <= 0;
-    is_finish <= 0;
-    is_start <= 0;
-    is_past <= 0;
-    cnt <= 0;
-    data <= 0;
-    head_pointer <= 0;
-    tail_pointer <= 0;
-    ttt <= 11;
-    for(i = 0 ; i < FetcherLength; ++i) begin
-        Addr[i] <= 0;
-        Data[i] <= 0;
-        instr_status[i] <= 0;
-        store_status[i] <= 0;
-        valid_status[i] <= 0;
-    end
+integer fp_w;
+integer clk_num;
+
+initial begin
+    fp_w = $fopen("./store.txt","w");
+    clk_num = 0;
 end
-always @(posedge clk) begin
-    if(is_exception_from_rob == `False) begin
-        if(valid_status[head_pointer] == `True && head_pointer != tail_pointer)begin
-            if(is_finish == `True) begin
-                is_finish <= `False;
-                is_start <= `False;
-                cnt <= 0;
-                head_pointer <= head_pointer + 1;
-            end
-            else begin
-                if(is_start == `False ) begin
-                    is_store_slb <= store_status[head_pointer];
-                    if(store_status[head_pointer] == `False)begin
-                         is_store <= store_status[head_pointer];
-                         addr <= Addr[head_pointer];
-                    end
-                    is_start <= `True;
-                end
-                else begin
-                    if(store_status[head_pointer] == `False) begin
-                        addr <= addr + 1;
-                        if(is_past == `False) begin
-                            is_past <= `True;
-                        end
-                        else begin
-                            case (cnt)
-                            2'b00:Data[head_pointer][7:0]= data_from_ram;
-                            2'b01:Data[head_pointer][15:8]= data_from_ram; 
-                            2'b10:Data[head_pointer][23:16]= data_from_ram;
-                            2'b11:Data[head_pointer][31:24]= data_from_ram;
-                            endcase
-                            if(aim_status[head_pointer] == cnt+2'b01) begin
-                                testAim <= aim_status[head_pointer];
-                                is_instr <= instr_status[head_pointer];
-                                data <= Data[head_pointer];
-                                is_store <= `False;
-                                is_finish <= `True;
-                                is_past <= `False;
-                            end
-                            cnt <= cnt+1;
-                        end
-                    end
-                    else begin
-                        if(is_past == `False)begin
-                            is_store <= `True;
-                            is_past  <= `True;
-                            char <= Data[head_pointer][7:0];
-                            addr <= Addr[head_pointer];
-                            cnt <= cnt+1;
-                        end
-                        else begin
-                            testchar <= Data[head_pointer];
-                            case (cnt)
-                            2'b01:char <= Data[head_pointer][15:8];
-                            2'b10:char <= Data[head_pointer][23:16];
-                            2'b11:char <= Data[head_pointer][31:24];
-                            endcase
-                            addr <= addr + 1;
-                            if(aim_status[head_pointer] == cnt) begin
-                                testAim <= aim_status[head_pointer];
-                                is_instr <= instr_status[head_pointer];
-                                data <= Data[head_pointer];
-                                is_store <= `False;
-                                is_finish <= `True;
-                                is_past <= `False;
-                            end
-                            cnt <= cnt+1;
-                        end
-                    end
-                end
-            end
-        end
-        else begin
-            if(head_pointer != tail_pointer) begin
-                head_pointer <= head_pointer + 1;
-                is_finish <= `False;
-                is_start <= `False;
-                is_past <= `False;
-                cnt <= 0;
-            end
-        end
-        if(head_pointer != tail_pointer + 5'b00001 && head_pointer != tail_pointer + 5'b00010 && head_pointer != tail_pointer + 5'b00011) begin
-                is_stall <= `False;
-                if(is_empty_from_ic ==`False && is_empty_from_slb == `False) begin
-                    Addr[tail_pointer] <= addr_from_slb;
-                    Data[tail_pointer] <= data_from_slb;
-                    instr_status[tail_pointer] <= `False;
-                    valid_status[tail_pointer] <= `True;
-                    store_status[tail_pointer] <= is_store_from_slb;
-                    aim_status[tail_pointer] <= aim_from_slb;
-                    Addr[tail_pointer+5'b00001] <= addr_from_ic;
-                    testAddr2 <= addr_from_ic;
-                    valid_status[tail_pointer+5'b00001] <= `True;
-                    instr_status[tail_pointer+5'b00001] <= `True;
-                    store_status[tail_pointer+5'b00001] <= `False;
-                    aim_status[tail_pointer+5'b00001] <= 2'b00;
-                    tail_pointer <= tail_pointer + 5'b00010;
-                end
-                else if(is_empty_from_ic ==`True && is_empty_from_slb == `False)begin
-                    Addr[tail_pointer] <= addr_from_slb;
-                    aim_status[tail_pointer] <= aim_from_slb;
-                    Data[tail_pointer] <= data_from_slb;
-                    instr_status[tail_pointer] <= `False;
-                    valid_status[tail_pointer] <= `True;
-                    store_status[tail_pointer] <= is_store_from_slb;
-                    tail_pointer <= tail_pointer + 5'b00001;      
-                end
-                else if(is_empty_from_ic ==`False && is_empty_from_slb == `True)begin
-                    aim_status[tail_pointer] <= 2'b00;
-                    Addr[tail_pointer] <= addr_from_ic;
-                    instr_status[tail_pointer] <= `True;
-                    valid_status[tail_pointer] <= `True;
-                    store_status[tail_pointer] <= `False;
-                    tail_pointer <= tail_pointer + 5'b00001;      
-                end
-            end 
-            else begin
-                is_stall <= `True;
-            end
+
+always@(posedge clk) begin
+    clk_num = clk_num + 1;
+    en_rst = rst;
+    en_rdy = rdy;
+    en_empty_ic = is_empty_from_ic;
+    en_empty_dc = is_empty_from_dc;
+    en_exception = is_exception_from_rob;
+    en_commit = is_commit_from_rob;
+    en_sl = is_sl_from_dc;
+    en_full_io = is_full_from_io;
+    if(en_rst == `True) begin
+        tail_pointer <= 0;
+        head_pointer <= 0;
+        is_finish <= `False;
+        is_start <= `False;
+        is_ready <= `True;
+        is_switch <= `False;
+    end
+    else if(en_rdy == `False) begin
+        
     end
     else begin
-        for (i = 0;i <= FetcherLength;i = i + 1) begin
-            if(store_status[i] == `False) begin
-                valid_status[i] <= `False;
+        if(en_exception == `True) begin
+            tail_pointer <= 0;
+            head_pointer <= 0;
+            is_finish <= `False;
+            is_start <= `False;
+            is_ready <= `True;
+            is_switch <= `False;
+        end
+        else begin
+            //提交
+            if(is_finish == `True) begin
+                addr <= 0;
+                is_commit <= `True;
+                is_finish <= `False;
+                data <= V2[head_pointer];
+                is_store <= store_status[head_pointer];
+                pc <= Pc[head_pointer];
+                if(instr_status[head_pointer] == `True) is_instr <= `True;
+                else is_instr <= `False;
+                head_pointer <= head_pointer+1;
+            end
+            else is_commit <= `False;
+
+            
+            if(head_pointer != tail_pointer) begin
+                test3 = Q1[head_pointer];
+                test2 = Q2[head_pointer];
+                if(is_start == `False && Q1[head_pointer] == 0 && Q2[head_pointer] == 0 && is_finish == `False && comp_status[head_pointer] == `True) is_start <= `True;
+                else if(is_start == `True) begin
+                    if(is_switch == `False && is_start == `True)begin
+                        is_store <= store_status[head_pointer];
+                        if(store_status[head_pointer] == `False) addr <= V1[head_pointer] + {{20{Imm[head_pointer][11]}},Imm[head_pointer][11:0]};
+                        else addr <= 0;
+                        is_switch <= `True;
+                        aim <= aim_status[head_pointer];
+                        cnt <= 0;
+                        char <= 0;
+                        is_pass <= `False;
+                        if(store_status[head_pointer] == `True) $fwrite(fp_w,"%d %d %d %d\n", clk_num ,V1[head_pointer] + {{20{Imm[head_pointer][11]}},Imm[head_pointer][11:0]} ,Pc[head_pointer],V2[head_pointer]);
+                    end 
+                    else if(is_start == `True) begin
+                        if(is_store == `True) begin
+                            if(addr == 0) addr <= V1[head_pointer] + {{20{Imm[head_pointer][11]}},Imm[head_pointer][11:0]};
+                            if(addr[17:16] == 2'b11 && en_full_io == `True) begin
+                                $display(addr);
+                             end
+                            else begin
+                                if(addr != 0 && addr[17:16] != 2'b11) addr <= addr + 1;
+                                cnt <= cnt + 2'b01;
+                                case(cnt)
+                                2'b00:char <= V2[head_pointer][7:0];
+                                2'b01:char <= V2[head_pointer][15:8];
+                                2'b10:char <= V2[head_pointer][23:16];
+                                2'b11:char <= V2[head_pointer][31:24];
+                                endcase 
+                                if(aim == cnt + 2'b01)begin
+                                    is_start <= `False;
+                                    is_finish <= `True;
+                                    is_switch <= `False;
+                                end
+                            end
+                        end
+                        else begin
+                            addr <= addr + 1;
+                            if(is_pass == `False) is_pass <= `True;
+                            else begin
+                                test = data_from_ram;
+                                case(cnt)
+                                    2'b00:V2[head_pointer][7:0] <= data_from_ram;
+                                    2'b01:V2[head_pointer][15:8] <= data_from_ram; 
+                                    2'b10:V2[head_pointer][23:16] <= data_from_ram;
+                                    2'b11:V2[head_pointer][31:24] <= data_from_ram;
+                                endcase 
+                                if(aim == cnt + 2'b01)begin
+                                    is_start <= `False;
+                                    is_finish <= `True;
+                                    is_switch <= `False;
+                                    addr <= 0;
+                                end
+                                cnt <= cnt + 2'b01;
+                            end
+                        end
+                    end
+                end
+            end
+            if(comp_status[comp_pointer] == `False) begin
+                if(q1_from_rf == commit_pc_from_rob && q1_from_rf != 0 ) begin
+                    V1[comp_pointer] <= commit_data_from_rob;
+                    Q1[comp_pointer] <= 0;
+                end
+                else begin
+                    V1[comp_pointer] <= v1_from_rf;
+                    Q1[comp_pointer] <= q1_from_rf;
+                end
+                if(q2_from_rf == commit_pc_from_rob && q2_from_rf != 0 ) begin
+                    V2[comp_pointer] <= commit_data_from_rob;
+                    Q2[comp_pointer] <= 0;
+                end
+                else begin
+                    test4 <= q2_from_rf;
+                    V2[comp_pointer] <= v2_from_rf;
+                    Q2[comp_pointer] <= q2_from_rf;
+                end
+                comp_status[comp_pointer] <= `True;
+            end
+            if(head_pointer != tail_pointer + 5'b00001 && head_pointer != tail_pointer + 5'b00010 && head_pointer != tail_pointer + 5'b00011 ) is_ready <= `True;
+            else is_ready <= `False;
+            if(en_empty_dc == `False && en_empty_ic == `False && en_sl == `True) begin
+                dtail_pointer = tail_pointer + 5'b00001;
+                    case(op_from_dc)
+                        `LW:begin
+                            aim_status[tail_pointer] <= 2'b00;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LH:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LB:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LBU:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LHU:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `SW:begin
+                            aim_status[tail_pointer] <= 2'b00;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                        `SB:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                        `SH:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                    endcase
+                    
+                    comp_pointer <= tail_pointer;
+                    Pc[tail_pointer] <= pc_from_dc;
+                    Imm[tail_pointer] <= imm_from_dc;
+                    comp_status[tail_pointer] <= `False;
+                    instr_status[tail_pointer] <= `False;
+
+                    Pc[dtail_pointer] <= addr_from_ic;
+                    V1[dtail_pointer] <= addr_from_ic;
+                    Q1[dtail_pointer] <= 0;
+                    V2[dtail_pointer] <= 0;
+                    Q2[dtail_pointer] <= 0;
+                    Imm[dtail_pointer] <= 0;
+                    instr_status[dtail_pointer] <= `True;
+                    comp_status[dtail_pointer] <= `True;
+                    aim_status[dtail_pointer] <= 2'b00;
+                    store_status[dtail_pointer] <= `False;
+                    tail_pointer <= tail_pointer + 5'b00010;
+                end
+                else if((en_empty_dc == `True && en_empty_ic == `False)||(en_empty_dc==`False && en_empty_ic == `False && en_sl == `False)) begin
+                    Pc[tail_pointer] <= addr_from_ic;
+                    V1[tail_pointer] <= addr_from_ic;
+                    Q1[tail_pointer] <= 0;
+                    V2[tail_pointer] <= 0;
+                    Q2[tail_pointer] <= 0;
+                    Imm[tail_pointer] <= 0;
+                    instr_status[tail_pointer] <= `True;
+                    comp_status[tail_pointer] <= `True;
+                    aim_status[tail_pointer] <= 2'b00;
+                    store_status[tail_pointer] <= `False;
+                    tail_pointer <= tail_pointer + 5'b00001;
+                end
+                else if(en_empty_dc == `False && en_empty_ic == `True && en_sl == `True) begin
+                    case(op_from_dc)
+                        `LW:begin
+                            aim_status[tail_pointer] <= 2'b00;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LH:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LB:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LBU:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `LHU:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `False;
+                        end 
+                        `SW:begin
+                            aim_status[tail_pointer] <= 2'b00;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                        `SB:begin
+                            aim_status[tail_pointer] <= 2'b01;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                        `SH:begin
+                            aim_status[tail_pointer] <= 2'b10;
+                            store_status[tail_pointer] <= `True;
+                        end 
+                    endcase
+                    instr_status[tail_pointer] <= `False;
+                    comp_pointer <= tail_pointer;
+                    Pc[tail_pointer] <= pc_from_dc;
+                    Imm[tail_pointer] <= imm_from_dc;
+                    comp_status[tail_pointer] <= `False;
+                    tail_pointer <= tail_pointer + 5'b00001;
+                end
+            //更新
+            if(en_commit == `True) begin
+                for(i = 0 ; i <= BufferLength ; i = i + 1 ) begin
+                    if(Q1[i] == commit_pc_from_rob && Q1[i] != 0)begin
+                        V1[i] <= commit_data_from_rob;
+                        Q1[i] <= 0;
+                    end 
+                    if(Q2[i] == commit_pc_from_rob && Q2[i] != 0)begin
+                        V2[i] <= commit_data_from_rob;
+                        Q2[i] <= 0;
+                    end 
+                end
             end
         end
     end
 end
+
+assign is_commit_to_rob = is_commit;
+assign is_commit_to_ic = is_commit;
+assign is_ready_to_iq = is_ready;
+assign is_instr_to_rob = is_instr;
 assign is_instr_to_ic = is_instr;
-assign is_instr_to_slb = is_instr;
-assign is_stall_to_ic = is_stall;
-assign is_stall_to_slb = is_stall;
+assign data_to_rob = data;
+assign data_to_ic = data;
 assign is_store_to_ram = is_store;
-assign is_finish_to_ic = is_finish;
-assign is_finish_to_slb = is_finish;
-assign is_store_to_slb = is_store_slb;
+assign pc_to_rob = pc;
 assign addr_to_ram = addr;
 assign data_to_ram = char;
-assign data_to_slb = data;
-assign data_to_ic = data;
+
 endmodule

@@ -52,111 +52,113 @@ reg [PointerLength:`Zero] Comp;
 reg [PointerLength:`Zero] Issue;
 reg [PointerLength:`Zero] Storage;
 reg is_ready;
+
+reg en_empty;
+reg en_sl;
+reg en_exception;
+reg en_commit;
+reg en_rst;
+
 integer test1;
 integer test2;
 integer i;
-always @(posedge rst) begin
-    is_ready <= 0;
-    is_empty <= `True;
-    v1 <= 0;
-    v2 <= 0;
-    imm <= 0;
-    op <= 0;
-    pc <= 0;
-    Storage <= 0;
-    for(i = 0 ;i <= RsLength; ++i) begin
-        Value1[i] <= 0;
-        Value2[i] <= 0;
-        Queue1[i] <= 0;
-        Queue2[i] <= 0;
-        is_complete[i] <= 0;
-        is_busy[i] <= 0;
-        Pc[i] <= 0;
-        Imm[i] <= 0; 
-    end
-end
+
 always @(posedge clk) begin
-    //判断是否清空
-    if(is_exception_from_rob) begin
-        is_ready <= 0;
+    en_rst = rst;
+    en_sl = is_sl_from_dc;
+    en_exception = is_exception_from_rob;
+    en_commit = is_commit_from_rob;
+    en_empty = is_empty_from_dc;
+    if(en_rst == `True) begin
+        is_ready <= `True;
         is_empty <= `True;
-        Storage <= 0;
         v1 <= 0;
         v2 <= 0;
         imm <= 0;
+        op <= 0;
         pc <= 0;
-        for(i = 0 ; i <= RsLength ; ++i) begin
+        Storage <= 0;
+        for(i = 0 ;i <= RsLength; ++i) begin
             Value1[i] <= 0;
             Value2[i] <= 0;
             Queue1[i] <= 0;
             Queue2[i] <= 0;
-            is_busy[i] <= 0;
             is_complete[i] <= 0;
+            is_busy[i] <= 0;
             Pc[i] <= 0;
             Imm[i] <= 0; 
-            Op[i] <= 0;
         end
     end
     else begin
-                    //先用rob的提交更新
-            //再找一遍可以发射的
-    
-    if(is_busy[0] == `True && is_complete[0] == `True && Queue1[0] == 0 && Queue2[0] == 0) begin
-        Issue = 0;
-        is_empty = `False;
-    end
-    else if(is_busy[1] == `True && is_complete[1] == `True && Queue1[1] == 0 && Queue2[1] == 0) begin
-        Issue = 1;
-        is_empty = `False;
-    end
-    else if(is_busy[2] == `True && is_complete[2] == `True && Queue1[2] == 0 && Queue2[2] == 0) begin
-        Issue = 2;
-        is_empty = `False;
-    end
-    else if(is_busy[3] == `True && is_complete[3] == `True && Queue1[3] == 0 && Queue2[3] == 0) begin
-        Issue = 3;
-        is_empty = `False;
-    end
-    else if(is_busy[4] == `True && is_complete[4] == `True && Queue1[4] == 0 && Queue2[4] == 0) begin
-        Issue = 4;
-        is_empty = `False;
-    end
-    else if(is_busy[5] == `True && is_complete[5] == `True && Queue1[5] == 0 && Queue2[5] == 0) begin
-        Issue = 5;
-        is_empty = `False;
-    end
-    else if(is_busy[6] == `True && is_complete[6] == `True && Queue1[6] == 0 && Queue2[6] == 0) begin
-        Issue = 6;
-        is_empty = `False;
-    end
-    else if(is_busy[7] == `True && is_complete[7] == `True && Queue1[7] == 0 && Queue2[7] == 0) begin
-        Issue = 7;
-        is_empty = `False;
-    end
-    else is_empty = `True;
-    if(is_empty == `False) begin
-        Storage = Storage - 3'b001;
-        v1 = Value1[Issue];
-        v2 = Value2[Issue];
-        imm = Imm[Issue];
-        pc = Pc[Issue];
-        op = Op[Issue];
-        is_busy[Issue] = `False;
-    end
-    if(is_busy[0] == `False) Free = 0;
-    else if(is_busy[1] == `False) Free = 1;
-    else if(is_busy[2] == `False) Free = 2;
-    else if(is_busy[3] == `False) Free = 3;
-    else if(is_busy[4] == `False) Free = 4;
-    else if(is_busy[5] == `False) Free = 5;
-    else if(is_busy[6] == `False) Free = 6;
-    else if(is_busy[7] == `False) Free = 7;
-    if(RsLength <= Storage + 3'b011) begin
-        is_ready <= `False;
-    end
-    else is_ready <= `True;
-    if(is_empty_from_dc == `False && is_sl_from_dc == `False) begin      
-            //再输入新的来自rf的值
+        if(en_exception == `True) begin
+            is_ready <= `True;
+            is_empty <= `True;
+            Storage <= 0;
+            v1 <= 0;
+            v2 <= 0;
+            imm <= 0;
+            pc <= 0;
+            for(i = 0 ; i <= RsLength ; ++i) begin
+                is_busy[i] <= 0;
+            end
+        end
+        else begin
+            if(is_busy[0] == `True && is_complete[0] == `True && Queue1[0] == 0 && Queue2[0] == 0) begin
+                Issue = 0;
+                is_empty = `False;
+            end
+            else if(is_busy[1] == `True && is_complete[1] == `True && Queue1[1] == 0 && Queue2[1] == 0) begin
+                Issue = 1;
+                is_empty = `False;
+            end
+            else if(is_busy[2] == `True && is_complete[2] == `True && Queue1[2] == 0 && Queue2[2] == 0) begin
+                Issue = 2;
+                is_empty = `False;
+            end
+            else if(is_busy[3] == `True && is_complete[3] == `True && Queue1[3] == 0 && Queue2[3] == 0) begin
+                Issue = 3;
+                is_empty = `False;
+            end
+            else if(is_busy[4] == `True && is_complete[4] == `True && Queue1[4] == 0 && Queue2[4] == 0) begin
+                Issue = 4;
+                is_empty = `False;
+            end
+            else if(is_busy[5] == `True && is_complete[5] == `True && Queue1[5] == 0 && Queue2[5] == 0) begin
+                Issue = 5;
+                is_empty = `False;
+            end
+            else if(is_busy[6] == `True && is_complete[6] == `True && Queue1[6] == 0 && Queue2[6] == 0) begin
+                Issue = 6;
+                is_empty = `False;
+            end
+            else if(is_busy[7] == `True && is_complete[7] == `True && Queue1[7] == 0 && Queue2[7] == 0) begin
+                Issue = 7;
+                is_empty = `False;
+            end
+            else is_empty = `True;
+        if(is_empty == `False) begin
+            Storage = Storage - 3'b001;
+            v1 = Value1[Issue];
+            v2 = Value2[Issue];
+            imm = Imm[Issue];
+            pc = Pc[Issue];
+            op = Op[Issue];
+            is_busy[Issue] = `False;
+        end
+
+        if(is_busy[0] == `False) Free = 0;
+        else if(is_busy[1] == `False) Free = 1;
+        else if(is_busy[2] == `False) Free = 2;
+        else if(is_busy[3] == `False) Free = 3;
+        else if(is_busy[4] == `False) Free = 4;
+        else if(is_busy[5] == `False) Free = 5;
+        else if(is_busy[6] == `False) Free = 6;
+        else if(is_busy[7] == `False) Free = 7;
+
+        if(RsLength <= Storage + 3'b011) is_ready <= `False;
+        else is_ready <= `True;
+
+        if(en_empty == `False && en_sl == `False) begin      
                 Pc[Free] <= pc_from_dc;
                 testpc <= pc_from_dc;
                 Imm[Free] <= imm_from_dc;
@@ -165,8 +167,8 @@ always @(posedge clk) begin
                 is_busy[Free] <= `True;
                 Comp <= Free;
                 is_complete[Free] <= `False;
+            end
         end
-    end
         if(is_busy[Comp] == `True && Pc[Comp] == pc_from_rf && is_complete[Comp] == `False) begin
             test2 <=  Comp;
             if(q1_from_rf == commit_pc_from_rob && q1_from_rf != 0)begin
@@ -187,20 +189,21 @@ always @(posedge clk) begin
             end
             is_complete[Comp] <= `True;
         end
-        if(is_commit_from_rob == `True) begin
-                for(i = 0 ; i <= RsLength ; ++i) begin
-                    if(is_busy[i] == `True) begin
-                        if(Queue1[i] != 0 && Queue1[i] == commit_pc_from_rob)begin
-                            Queue1[i] <= 0;
-                            Value1[i] <= commit_data_from_rob;
-                        end
-                        if(Queue2[i] != 0 && Queue2[i] == commit_pc_from_rob) begin
-                            Queue2[i] <= 0;
-                            Value2[i] <= commit_data_from_rob;
-                        end
+        if(en_commit == `True) begin
+            for(i = 0 ; i <= RsLength ; ++i) begin
+                if(is_busy[i] == `True) begin
+                    if(Queue1[i] != 0 && Queue1[i] == commit_pc_from_rob)begin
+                        Queue1[i] <= 0;
+                        Value1[i] <= commit_data_from_rob;
+                    end
+                    if(Queue2[i] != 0 && Queue2[i] == commit_pc_from_rob) begin
+                        Queue2[i] <= 0;
+                        Value2[i] <= commit_data_from_rob;
                     end
                 end
             end
+        end
+    end
 end
 assign v1_to_alu = v1;
 assign v2_to_alu = v2;

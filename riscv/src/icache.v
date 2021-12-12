@@ -2,17 +2,17 @@
 
 module ic #(
     parameter EntryNum = 127,
-    parameter TagLength = 8,
+    parameter TagLength = 7,
     parameter PointerLength = 6
 )(
     input clk,
     input rst,
     input [`PcLength:`Zero] pc_from_iq,
     input [`DataLength:`Zero] instr_from_fc,
-    input is_finish_from_fc,
+    input is_commit_from_fc,
     input is_empty_from_iq,
-    input is_stall_from_fc,
     input is_instr_from_fc,
+    input is_exception_from_rob,
     output [`PcLength:`Zero] addr_to_fc,
     output is_empty_to_fc,
     output is_hit_to_iq,
@@ -25,40 +25,67 @@ reg [`PcLength:`Zero] pc;
 reg [`DataLength:`Zero] instr;
 reg is_empty; 
 reg is_hit;
+reg is_issue;
 reg [PointerLength:`Zero] index;
+
+reg en_exception;
+reg en_commit;
+reg en_stall;
+reg en_instr;
+reg en_empty;
+reg en_rst;
 integer i;
-always @(posedge clk) 
-begin
-    if(is_finish_from_fc == `True && is_instr_from_fc == `True ) begin
-        index[6:0] = pc[6:0];
-        is_hit <= `True;
-        valid[index] <= `True;
-        cache[index] <= instr_from_fc;
-        tag[index] <= pc[15:7];
-        instr <= instr_from_fc;
-    end
-    if(is_hit == `True) is_hit <= `False;
-    if(is_empty_from_iq == `False) begin
-        index[6:0] = pc_from_iq[6:0];  
-        if(tag[index] == pc_from_iq[15:7] && valid[index] == `True) begin
-            instr <= cache[index];
-            is_hit <= `True;
-        end
-        else begin
-            pc <= pc_from_iq;
-            is_empty<=`False;
-            is_hit <= `False;
-        end
+always @(posedge clk) begin
+    en_rst = rst;
+    en_commit = is_commit_from_fc;
+    en_instr = is_instr_from_fc;
+    en_empty = is_empty_from_iq;
+    en_exception = is_exception_from_rob;
+    if(en_rst == `True) begin
+        for(i = 0 ; i <= EntryNum; i = i + 1) valid[i] <= 0;
     end
     else begin
-        is_empty <= `True;
+        if(en_exception == `True) begin
+            is_hit <= `False;
+            is_issue <= `False;
+            is_empty <= `True;
+        end
+        else begin
+            if(en_commit == `True && en_instr == `True && is_issue ==`True ) begin
+                index[6:0] = pc[8:2];
+                is_hit <= `True;
+                valid[index] <= `True;
+                cache[index] <= instr_from_fc;
+                tag[index] <= pc[16:9];
+                instr <= instr_from_fc;
+                is_issue <= `False;
+            end
+            if(is_hit == `True) is_hit <= `False;
+
+            if(en_empty == `False) begin
+                index[6:0] = pc_from_iq[8:2];  
+                if(tag[index] == pc_from_iq[16:9] && valid[index] == `True) begin
+                    instr <= cache[index];
+                    is_hit <= `True;
+                end
+                else begin
+                    if(tag[index] != pc_from_iq[16:9]) begin
+                //    $display("%x",tag[index]);
+                //    $display("%x",pc_from_iq[16:9]);
+                //    $display("%x",index);
+                //    $display("%x",pc_from_iq);
+                    end
+                    pc <= pc_from_iq;
+                    is_empty <= `False;
+                    is_hit <= `False;
+                    is_issue <= `True;
+                end
+            end
+            if( is_empty == `False) begin
+                is_empty <= `True;
+            end
+        end
     end
-    if(is_stall_from_fc == `False && is_empty == `False) begin
-        is_empty <= `True;
-    end
-end
-always @(posedge rst) begin
-    for(i = 0 ; i <= EntryNum; i = i + 1) valid[i] <= 0;
 end
 assign is_hit_to_iq = is_hit;
 assign instr_to_iq = instr;

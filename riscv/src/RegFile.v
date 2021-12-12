@@ -19,14 +19,15 @@ module rf
     input  wire    [`PcLength:`Zero]       pc_from_decoder,
     input  wire    [Rs1Length:`Zero]       rs1_from_decoder,
     input  wire    [Rs2Length:`Zero]       rs2_from_decoder,
+
     output wire[`DataLength:`Zero] v1_to_rs,
     output wire[`DataLength:`Zero] v2_to_rs,
     output wire[`PcLength:`Zero] q1_to_rs,
     output wire[`PcLength:`Zero] q2_to_rs,
-    output wire[`DataLength:`Zero] v1_to_slb,
-    output wire[`DataLength:`Zero] v2_to_slb,
-    output wire[`PcLength:`Zero] q1_to_slb,
-    output wire[`PcLength:`Zero] q2_to_slb,
+    output wire[`DataLength:`Zero] v1_to_fc,
+    output wire[`DataLength:`Zero] v2_to_fc,
+    output wire[`PcLength:`Zero] q1_to_fc,
+    output wire[`PcLength:`Zero] q2_to_fc,
     output wire[`DataLength:`Zero] pc_to_rs
 );
 integer i;
@@ -39,67 +40,74 @@ reg [`PcLength:`Zero] q2;
 reg [`PcLength:`Zero] pc;
 reg [RdLength:`Zero] rd;
 reg [`PcLength:`Zero] test1;
-always @(posedge rst) begin
-    for(i = 0 ; i <= RegFileLength ; i = i + 1) begin
-        RegValue[i] <= 0;
-        RegQueue[i] <= 0;
-    end
-    v1 <= 0;
-    v2 <= 0;
-    q1 <= 0;
-    q2 <= 0;
-    pc <= 0;
-    rd <= 0;
-end
+reg en_empty;
+reg en_commit;
+reg en_exception;
+reg en_rst;
+
 always @(posedge clk) begin
-    //先判断是否完成
-//完成了的话:rob写入，再清空发空
-//再rs读取
-//再rd写入
-    if(is_exception_from_rob) begin
-        if(rd_from_rob != 0 && is_commit_from_rob == `True) begin
-            RegValue[rd_from_rob] <= data_from_rob;
-        end
-        for(i = 0 ;i <= RegFileLength ; i = i + 1) begin
-             RegQueue[i] <= 0;
+    en_rst = rst;
+    en_commit = is_commit_from_rob;
+    en_exception = is_exception_from_rob;
+    en_empty = is_empty_from_decoder;
+
+    if(en_rst == `True) begin
+        for(i = 0 ; i <= RegFileLength ; i = i + 1) begin
+            RegValue[i] <= 0;
+            RegQueue[i] <= 0;
         end
         v1 <= 0;
         v2 <= 0;
         q1 <= 0;
         q2 <= 0;
-        rd <= 0;
         pc <= 0;
+        rd <= 0;
     end
     else begin
-        test1 = RegQueue[1];
-        if(is_commit_from_rob) begin
-            if(RegQueue[rd_from_rob] == pc_from_rob) begin
-                RegQueue[rd_from_rob] = 0;
+        if(en_exception == `True) begin
+            if(rd_from_rob != 0 && en_commit== `True) begin
+                RegValue[rd_from_rob] <= data_from_rob;
             end
-            RegValue[rd_from_rob] = data_from_rob;
+            for(i = 0 ;i <= RegFileLength ; i = i + 1) begin
+                RegQueue[i] <= 0;
+            end
+            v1 <= 0;
+            v2 <= 0;
+            q1 <= 0;
+            q2 <= 0;
+            rd <= 0;
+            pc <= 0;
         end
-        if(is_empty_from_decoder == `False) begin
-            if(rd_from_decoder != 0) begin
-                RegQueue[rd_from_decoder] <= pc_from_decoder;
+        else begin
+            test1 = RegQueue[1];
+            if(en_commit == `True) begin
+                if(RegQueue[rd_from_rob] == pc_from_rob && rd_from_rob != 0) RegQueue[rd_from_rob] = 0;
+                if(rd_from_rob != 0) RegValue[rd_from_rob] = data_from_rob;
             end
-            rd <= rd_from_decoder;
-            pc <= pc_from_decoder;
-            v1 <= RegValue[rs1_from_decoder];
-            v2 <= RegValue[rs2_from_decoder];
-            q1 <= RegQueue[rs1_from_decoder];
-            q2 <= RegQueue[rs2_from_decoder];
+            if(en_empty == `False) begin
+                if(rd_from_decoder != 0) begin
+                    RegQueue[rd_from_decoder] <= pc_from_decoder;
+                end
+                rd <= rd_from_decoder;
+                pc <= pc_from_decoder;
+                v1 <= RegValue[rs1_from_decoder];
+                v2 <= RegValue[rs2_from_decoder];
+                q1 <= RegQueue[rs1_from_decoder];
+                q2 <= RegQueue[rs2_from_decoder];
+            end
         end
     end
 end
+
 assign pc_to_rob = pc;
 assign rd_to_rob = rd;
 assign v1_to_rs = v1;
 assign v2_to_rs = v2;
 assign q1_to_rs = q1;
 assign q2_to_rs = q2;
-assign v1_to_slb= v1;
-assign v2_to_slb= v2;
-assign q1_to_slb= q1;
-assign q2_to_slb= q2;
+assign v1_to_fc= v1;
+assign v2_to_fc= v2;
+assign q1_to_fc= q1;
+assign q2_to_fc= q2;
 assign pc_to_rs = pc;
 endmodule
