@@ -24,10 +24,10 @@ module rf
     output wire[`DataLength:`Zero] v2_to_rs,
     output wire[`PcLength:`Zero] q1_to_rs,
     output wire[`PcLength:`Zero] q2_to_rs,
-    output wire[`DataLength:`Zero] v1_to_fc,
-    output wire[`DataLength:`Zero] v2_to_fc,
-    output wire[`PcLength:`Zero] q1_to_fc,
-    output wire[`PcLength:`Zero] q2_to_fc,
+    output wire[`DataLength:`Zero] v1_to_slb,
+    output wire[`DataLength:`Zero] v2_to_slb,
+    output wire[`PcLength:`Zero] q1_to_slb,
+    output wire[`PcLength:`Zero] q2_to_slb,
     output wire[`DataLength:`Zero] pc_to_rs
 );
 integer i;
@@ -66,7 +66,7 @@ always @(posedge clk) begin
     else begin
         if(en_exception == `True) begin
             if(rd_from_rob != 0 && en_commit== `True) begin
-                RegValue[rd_from_rob] <= data_from_rob;
+                RegValue[rd_from_rob] = data_from_rob;
             end
             for(i = 0 ;i <= RegFileLength ; i = i + 1) begin
                 RegQueue[i] <= 0;
@@ -105,9 +105,9 @@ assign v1_to_rs = v1;
 assign v2_to_rs = v2;
 assign q1_to_rs = q1;
 assign q2_to_rs = q2;
-assign v1_to_fc= v1;
-assign v2_to_fc= v2;
-assign q1_to_fc= q1;
-assign q2_to_fc= q2;
+assign v1_to_slb= v1;
+assign v2_to_slb= v2;
+assign q1_to_slb= q1;
+assign q2_to_slb= q2;
 assign pc_to_rs = pc;
 endmodule

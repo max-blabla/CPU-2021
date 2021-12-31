@@ -1,24 +1,19 @@
-basicopt2
-arraytest1
-arraytest2
-gcd
-lvalue2
-expr
-statementtest 
-looper
-qsort 
-hanoi 
-bulgarian 
-superloop
-tak
+basicopt2  //y
+arraytest1 //y
+arraytest2 //y
+gcd //y
+lvalue2 //y
+expr //y
+statementtest  // y
+looper //y
+queens // y
+qsort // y 
+hanoi // y
+magic // y
+bulgarian // y
+superloop  // y
+tak       // y
 uartboom Seems Alright
-
-
-
-
-magic deadloop 并且沒有輸出（？）
-
-queens bad  //这个不明白，还待观察
 
 
 

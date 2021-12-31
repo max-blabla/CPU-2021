@@ -1,4 +1,3 @@
-
 `include "parameters.v"
 module rs
 #(
@@ -45,13 +44,13 @@ reg [`DataLength:`Zero] imm;
 reg [`PcLength:`Zero] pc;
 reg [`OpcodeLength:`Zero] op;
 reg is_empty;
-reg [`PcLength:`Zero] testpc;
 //integer test;
 reg [PointerLength:`Zero] Free;
 reg [PointerLength:`Zero] Comp;
 reg [PointerLength:`Zero] Issue;
 reg [PointerLength:`Zero] Storage;
 reg is_ready;
+reg is_issue;
 
 reg en_empty;
 reg en_sl;
@@ -59,8 +58,6 @@ reg en_exception;
 reg en_commit;
 reg en_rst;
 
-integer test1;
-integer test2;
 integer i;
 
 always @(posedge clk) begin
@@ -72,13 +69,14 @@ always @(posedge clk) begin
     if(en_rst == `True) begin
         is_ready <= `True;
         is_empty <= `True;
+        is_issue <= `False;
         v1 <= 0;
         v2 <= 0;
         imm <= 0;
         op <= 0;
         pc <= 0;
         Storage <= 0;
-        for(i = 0 ;i <= RsLength; ++i) begin
+        for(i = 0 ;i <= RsLength; i= i+1) begin
             Value1[i] <= 0;
             Value2[i] <= 0;
             Queue1[i] <= 0;
@@ -91,6 +89,7 @@ always @(posedge clk) begin
     end
     else begin
         if(en_exception == `True) begin
+            is_issue <= `False;
             is_ready <= `True;
             is_empty <= `True;
             Storage <= 0;
@@ -98,79 +97,98 @@ always @(posedge clk) begin
             v2 <= 0;
             imm <= 0;
             pc <= 0;
-            for(i = 0 ; i <= RsLength ; ++i) begin
+            for(i = 0 ; i <= RsLength ; i = i + 1) begin
                 is_busy[i] <= 0;
             end
         end
         else begin
             if(is_busy[0] == `True && is_complete[0] == `True && Queue1[0] == 0 && Queue2[0] == 0) begin
-                Issue = 0;
-                is_empty = `False;
+                Issue <= 0;
+                is_issue  <= `True;
             end
             else if(is_busy[1] == `True && is_complete[1] == `True && Queue1[1] == 0 && Queue2[1] == 0) begin
-                Issue = 1;
-                is_empty = `False;
+                Issue <= 1;
+                is_issue  <= `True;
             end
             else if(is_busy[2] == `True && is_complete[2] == `True && Queue1[2] == 0 && Queue2[2] == 0) begin
-                Issue = 2;
-                is_empty = `False;
+                Issue <= 2;
+                is_issue  <= `True;
             end
             else if(is_busy[3] == `True && is_complete[3] == `True && Queue1[3] == 0 && Queue2[3] == 0) begin
-                Issue = 3;
-                is_empty = `False;
+                Issue <= 3;
+                is_issue  <= `True;
             end
             else if(is_busy[4] == `True && is_complete[4] == `True && Queue1[4] == 0 && Queue2[4] == 0) begin
-                Issue = 4;
-                is_empty = `False;
+                Issue <= 4;
+                is_issue  <= `True;
             end
             else if(is_busy[5] == `True && is_complete[5] == `True && Queue1[5] == 0 && Queue2[5] == 0) begin
-                Issue = 5;
-                is_empty = `False;
+                Issue <= 5;
+                is_issue  <= `True;
             end
             else if(is_busy[6] == `True && is_complete[6] == `True && Queue1[6] == 0 && Queue2[6] == 0) begin
-                Issue = 6;
-                is_empty = `False;
+                Issue <= 6;
+                is_issue  <= `True;
             end
             else if(is_busy[7] == `True && is_complete[7] == `True && Queue1[7] == 0 && Queue2[7] == 0) begin
-                Issue = 7;
-                is_empty = `False;
+                Issue <= 7;
+                is_issue  <= `True;
             end
-            else is_empty = `True;
-        if(is_empty == `False) begin
-            Storage = Storage - 3'b001;
-            v1 = Value1[Issue];
-            v2 = Value2[Issue];
-            imm = Imm[Issue];
-            pc = Pc[Issue];
-            op = Op[Issue];
-            is_busy[Issue] = `False;
+            else is_issue  <= `False;
+        if(is_issue == `True) begin
+            v1 <= Value1[Issue];
+            v2 <= Value2[Issue];
+            imm <= Imm[Issue];
+            pc <= Pc[Issue];
+            op <= Op[Issue];
+            is_busy[Issue] <= `False;
+            is_empty <= `False;
         end
+        if(is_empty <= `False) is_empty <= `True;
 
-        if(is_busy[0] == `False) Free = 0;
-        else if(is_busy[1] == `False) Free = 1;
-        else if(is_busy[2] == `False) Free = 2;
-        else if(is_busy[3] == `False) Free = 3;
-        else if(is_busy[4] == `False) Free = 4;
-        else if(is_busy[5] == `False) Free = 5;
-        else if(is_busy[6] == `False) Free = 6;
-        else if(is_busy[7] == `False) Free = 7;
-
-        if(RsLength <= Storage + 3'b011) is_ready <= `False;
-        else is_ready <= `True;
+        if(is_busy[0] == `False)begin
+            is_ready <= `True;
+            Free <= 0;
+        end
+        else if(is_busy[1] == `False)begin
+            is_ready <= `True;
+            Free <= 1;
+        end
+        else if(is_busy[2] == `False)begin
+            is_ready <= `True;
+            Free <= 2;
+        end
+        else if(is_busy[3] == `False)begin
+            is_ready <= `True;
+            Free <= 3;
+        end
+        else if(is_busy[4] == `False)begin
+            is_ready <= `True;
+            Free <= 4;
+        end
+        else if(is_busy[5] == `False)begin
+            is_ready <= `True;
+            Free <= 5;
+        end
+        else if(is_busy[6] == `False)begin
+            is_ready <= `False;
+            Free <= 6;
+        end
+        else if(is_busy[7] == `False)begin
+            is_ready <= `False;
+            Free <= 7;
+        end
 
         if(en_empty == `False && en_sl == `False) begin      
                 Pc[Free] <= pc_from_dc;
-                testpc <= pc_from_dc;
                 Imm[Free] <= imm_from_dc;
                 Op[Free] <= op_from_dc;
-                Storage <= Storage + 3'b001;
                 is_busy[Free] <= `True;
                 Comp <= Free;
                 is_complete[Free] <= `False;
             end
         end
         if(is_busy[Comp] == `True && Pc[Comp] == pc_from_rf && is_complete[Comp] == `False) begin
-            test2 <=  Comp;
             if(q1_from_rf == commit_pc_from_rob && q1_from_rf != 0)begin
                 Queue1[Comp] <= 0;
                 Value1[Comp] <= commit_data_from_rob;
@@ -190,7 +208,7 @@ always @(posedge clk) begin
             is_complete[Comp] <= `True;
         end
         if(en_commit == `True) begin
-            for(i = 0 ; i <= RsLength ; ++i) begin
+            for(i = 0 ; i <= RsLength ; i = i+1) begin
                 if(is_busy[i] == `True) begin
                     if(Queue1[i] != 0 && Queue1[i] == commit_pc_from_rob)begin
                         Queue1[i] <= 0;

@@ -21,20 +21,20 @@ reg [`OpcodeLength:`Zero] op;
 reg [`DataLength : `Zero] imm;
 reg signed [`DataLength : `Zero] v1;
 reg signed [`DataLength : `Zero] v2;
-reg unsigned [`DataLength : `Zero] uv1;
-reg unsigned [`DataLength : `Zero] uv2;
+reg [`DataLength : `Zero] uv1;
+reg [`DataLength : `Zero] uv2;
 always @(*) begin
     if(rst == `True) begin
-        pc <= 0;
-        data <= 0;
-        is_finish <= 0;
-        op <= 0;
-        v1 <= 0;
-        v2 <= 0;
-        uv1 <= 0;
-        uv2 <= 0;
-        imm <= 0;
-        jpc <= 0;
+        pc = 0;
+        data = 0;
+        is_finish = 0;
+        op = 0;
+        v1 = 0;
+        v2 = 0;
+        uv1 = 0;
+        uv2 = 0;
+        imm = 0;
+        jpc = 0;
     end
     else begin
         pc = pc_from_rs; 

@@ -3,15 +3,16 @@ module iq
 #
 (
     parameter QueueStorage = 15,
-    parameter PointerStorage = 3//头指针和尾指针长度
+    parameter PointerStorage = 3//头指针和尾指针长�?
 )
 (
     input wire rst,
     input wire clk,
+    input wire rdy,
     input wire is_exception_from_rob,
     input wire is_hit_from_ic,
     input wire is_ready_from_rs,
-    input wire is_ready_from_fc,
+    input wire is_ready_from_slb,
     input wire is_ready_from_rob,
     input wire[`PcLength:`Zero] pc_from_rob,
     input wire[`InstrLength:`Zero] instr_from_ic,
@@ -30,28 +31,30 @@ reg en_exception;
 reg en_hit;
 reg en_ready_rs;
 reg en_ready_rob;
-reg en_ready_fc;
+reg en_ready_slb;
 reg en_rst;
+reg en_rdy;
 
 reg [`PcLength:`Zero] pc_dc;
-reg [`PcLength:`Zero] pc_ic;//指向尾部pc, 尾部即为传给fetcher的
+reg [`PcLength:`Zero] pc_ic;//指向尾部pc, 尾部即为传给fetcher�?
 reg [`InstrLength:`Zero] instr_dc;
 reg [PointerStorage:`Zero]test;
 reg [`PcLength:`Zero]test2;
 reg [`PcLength:`Zero]lasttest;
 
 reg is_empty_ic;
-reg is_empty_dc;//给dc的
+reg is_empty_dc;//给dc�?
 reg is_ready;
 reg is_receive;
 
 integer i;
 always @(posedge clk) begin
     en_rst = rst;
+    en_rdy = rdy;
     en_exception = is_exception_from_rob;
     en_ready_rob = is_ready_from_rob;
     en_ready_rs = is_ready_from_rs;
-    en_ready_fc = is_ready_from_fc;
+    en_ready_slb = is_ready_from_slb;
     en_hit = is_hit_from_ic;
     if(en_rst == `True) begin
         head_pointer <= 0;
@@ -63,10 +66,13 @@ always @(posedge clk) begin
         is_receive <= `False;
         is_empty_ic <= `False;
 
-        for(i =  1; i <= QueueStorage ; ++i ) begin
+        for(i =  0; i <= QueueStorage ; i = i+1 ) begin
             instr_queue[i] <=  0;
             pc_queue[i] <= 0;
         end 
+    end
+    else if(en_rdy == `False) begin
+        
     end
     else begin
         if(en_exception == `True) begin
@@ -99,7 +105,7 @@ always @(posedge clk) begin
             end
             else is_empty_ic <= `True;
 
-            if(en_ready_rob == `True && en_ready_fc == `True && en_ready_rs == `True) is_ready <= `True;
+            if(en_ready_rob == `True && en_ready_slb == `True && en_ready_rs == `True) is_ready <= `True;
             else is_ready <= `False;
 
             if(is_ready == `True) begin

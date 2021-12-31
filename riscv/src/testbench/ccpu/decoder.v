@@ -16,16 +16,16 @@ module dc
     output  wire    is_empty_to_reg,
     output  wire    is_empty_to_rob,
     output  wire    is_empty_to_rs,
-    output  wire    is_empty_to_fc,
-    output  wire    is_sl_to_fc,
+    output  wire    is_empty_to_slb,
+    output  wire    is_sl_to_slb,
     output  wire    is_sl_to_rs,
     output  wire    [RdLength:`Zero]        rd_to_reg,
     output  wire    [`PcLength:`Zero]       pc_to_reg,
     output  wire    [Rs1Length:`Zero]       rs1_to_reg,
     output  wire    [Rs2Length:`Zero]       rs2_to_reg,
-    output  wire    [`DataLength:`Zero]     imm_to_fc,
-    output  wire    [`OpcodeLength:`Zero]   op_to_fc,
-    output  wire    [`PcLength:`Zero]       pc_to_fc,
+    output  wire    [`DataLength:`Zero]     imm_to_slb,
+    output  wire    [`OpcodeLength:`Zero]   op_to_slb,
+    output  wire    [`PcLength:`Zero]       pc_to_slb,
     output  wire    [RdLength:`Zero]        rd_to_rob,
     output  wire    [`PcLength:`Zero]       pc_to_rob,
     output  wire    [`OpcodeLength:`Zero]   op_to_rob,
@@ -166,15 +166,15 @@ assign  rd_to_reg   =   rd;
 assign  is_empty_to_reg  =  is_empty_from_instr_queue;
 assign  is_empty_to_rob = is_empty_from_instr_queue;
 assign  is_empty_to_rs = is_empty_from_instr_queue;
-assign  is_empty_to_fc = is_empty_from_instr_queue;
+assign  is_empty_to_slb = is_empty_from_instr_queue;
 assign  is_sl_to_rs = is_sl;
-assign  is_sl_to_fc = is_sl;
+assign  is_sl_to_slb = is_sl;
 assign  pc_to_rob = pc;
 assign  rd_to_rob = rd;
 assign  op_to_rob = op;
-assign  pc_to_fc = pc;
-assign  op_to_fc = op;
-assign  imm_to_fc = imm;
+assign  pc_to_slb = pc;
+assign  op_to_slb = op;
+assign  imm_to_slb = imm;
 assign  pc_to_rs = pc;
 assign  op_to_rs = op;
 assign  imm_to_rs = imm;

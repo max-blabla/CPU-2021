@@ -1,5 +1,4 @@
 `include "parameters.v"
-
 module ic #(
     parameter EntryNum = 127,
     parameter TagLength = 7,
@@ -7,6 +6,7 @@ module ic #(
 )(
     input clk,
     input rst,
+    input rdy,
     input [`PcLength:`Zero] pc_from_iq,
     input [`DataLength:`Zero] instr_from_fc,
     input is_commit_from_fc,
@@ -34,15 +34,20 @@ reg en_stall;
 reg en_instr;
 reg en_empty;
 reg en_rst;
+reg en_rdy;
 integer i;
 always @(posedge clk) begin
     en_rst = rst;
+    en_rdy = rdy;
     en_commit = is_commit_from_fc;
     en_instr = is_instr_from_fc;
     en_empty = is_empty_from_iq;
     en_exception = is_exception_from_rob;
     if(en_rst == `True) begin
         for(i = 0 ; i <= EntryNum; i = i + 1) valid[i] <= 0;
+    end
+    else if(en_rdy == `False) begin
+        
     end
     else begin
         if(en_exception == `True) begin
@@ -69,12 +74,6 @@ always @(posedge clk) begin
                     is_hit <= `True;
                 end
                 else begin
-                    if(tag[index] != pc_from_iq[16:9]) begin
-                //    $display("%x",tag[index]);
-                //    $display("%x",pc_from_iq[16:9]);
-                //    $display("%x",index);
-                //    $display("%x",pc_from_iq);
-                    end
                     pc <= pc_from_iq;
                     is_empty <= `False;
                     is_hit <= `False;

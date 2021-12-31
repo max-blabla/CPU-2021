@@ -11,7 +11,7 @@ module iq
     input wire is_exception_from_rob,
     input wire is_hit_from_ic,
     input wire is_ready_from_rs,
-    input wire is_ready_from_fc,
+    input wire is_ready_from_slb,
     input wire is_ready_from_rob,
     input wire[`PcLength:`Zero] pc_from_rob,
     input wire[`InstrLength:`Zero] instr_from_ic,
@@ -30,7 +30,7 @@ reg en_exception;
 reg en_hit;
 reg en_ready_rs;
 reg en_ready_rob;
-reg en_ready_fc;
+reg en_ready_slb;
 reg en_rst;
 
 reg [`PcLength:`Zero] pc_dc;
@@ -51,7 +51,7 @@ always @(posedge clk) begin
     en_exception = is_exception_from_rob;
     en_ready_rob = is_ready_from_rob;
     en_ready_rs = is_ready_from_rs;
-    en_ready_fc = is_ready_from_fc;
+    en_ready_slb = is_ready_from_slb;
     en_hit = is_hit_from_ic;
     if(en_rst == `True) begin
         head_pointer <= 0;
@@ -99,7 +99,7 @@ always @(posedge clk) begin
             end
             else is_empty_ic <= `True;
 
-            if(en_ready_rob == `True && en_ready_fc == `True && en_ready_rs == `True) is_ready <= `True;
+            if(en_ready_rob == `True && en_ready_slb == `True && en_ready_rs == `True) is_ready <= `True;
             else is_ready <= `False;
 
             if(is_ready == `True) begin

@@ -149,6 +149,74 @@ wire is_empty_from_dc_to_reg;
 
 wire is_exception_from_rob_to_ic;
 
+wire is_exception_from_rob_to_slb;
+
+wire is_sl_from_dc_to_slb;
+wire is_empty_from_dc_to_slb;
+wire [`PcLength:`Zero] commit_pc_from_rob_to_slb;
+wire [`DataLength:`Zero] commit_data_from_rob_to_slb;
+wire [`PcLength:`Zero] pc_from_dc_to_slb;
+wire [`DataLength:`Zero] imm_from_dc_to_slb;
+wire [`OpcodeLength:`Zero] op_from_dc_to_slb;
+wire [`DataLength:`Zero] v1_from_rf_to_slb;
+wire [`DataLength:`Zero] v2_from_rf_to_slb;
+wire [`PcLength:`Zero] q1_from_rf_to_slb;
+wire [`PcLength:`Zero] q2_from_rf_to_slb;
+wire [`DataLength:`Zero] data_from_fc_to_slb;
+wire is_finish_from_fc_to_slb;
+wire is_instr_from_fc_to_slb;
+
+wire [`DataLength:`Zero] data_from_slb_to_rob;
+wire [`PcLength:`Zero] commit_pc_from_slb_to_rob;
+wire [`DataLength:`Zero] data_from_slb_to_fc;
+wire is_store_from_slb_to_fc;
+wire is_empty_from_slb_to_fc;
+wire is_commit_from_slb_to_rob;
+wire [`PcLength:`Zero]addr_from_slb_to_fc;
+wire [1:0] aim_from_slb_to_fc;
+
+wire is_ready_from_slb_to_iq;
+
+wire is_commit_from_rob_to_slb;
+wire is_store_from_fc_to_slb;
+
+slb mslb(
+  .clk(clk_in),
+  .rst(rst_in),
+  .rdy(rdy_in),
+  .is_exception_from_rob(is_exception_from_rob_to_slb),
+  .is_empty_from_dc(is_empty_from_dc_to_slb),
+  .is_sl_from_dc(is_sl_from_dc_to_slb),
+  .is_commit_from_rob(is_commit_from_rob_to_slb),
+  .commit_pc_from_rob(commit_pc_from_rob_to_slb),
+  .commit_data_from_rob(commit_data_from_rob_to_slb),
+
+    
+  .pc_from_dc(pc_from_dc_to_slb),
+  .imm_from_dc(imm_from_dc_to_slb),
+  .op_from_dc(op_from_dc_to_slb),
+
+  .q1_from_rf(q1_from_rf_to_slb),
+  .q2_from_rf(q2_from_rf_to_slb),
+  .v1_from_rf(v1_from_rf_to_slb),
+  .v2_from_rf(v2_from_rf_to_slb),
+
+  .data_from_fc(data_from_fc_to_slb),
+  .is_finish_from_fc(is_finish_from_fc_to_slb),
+  .is_instr_from_fc(is_instr_from_fc_to_slb),
+  .is_store_from_fc(is_store_from_fc_to_slb),
+
+  .data_to_rob(data_from_slb_to_rob),
+  .data_to_fc(data_from_slb_to_fc),
+  .is_store_to_fc(is_store_from_slb_to_fc),
+  .is_empty_to_fc(is_empty_from_slb_to_fc),
+  .is_commit_to_rob(is_commit_from_slb_to_rob),
+  .addr_to_fc(addr_from_slb_to_fc),
+  .is_ready_to_iq(is_ready_from_slb_to_iq),
+  .commit_pc_to_rob(commit_pc_from_slb_to_rob),
+  .aim_to_fc(aim_from_slb_to_fc)
+);
+
 alu malu(
     .rst                    (rst_in),
     .clk                    (clk_in),
@@ -194,36 +262,35 @@ rob mrob(
     .rst                                (rst_in),
     .is_empty_from_dc                   (is_empty_from_dc_to_rob),
     .is_finish_from_alu                 (is_finish_from_alu_to_rob),
-    .is_commit_from_fc                 (is_commit_from_fc_to_rob),
-    .is_instr_from_fc                   (is_instr_from_fc_to_rob),
+    .is_commit_from_slb                 (is_commit_from_slb_to_rob),
     .is_ready_to_iq                     (is_ready_from_rob_to_iq),
     .is_exception_from_rob              (is_exception_from_rob_to_rob),
 
     .data_from_alu                      (data_from_alu_to_rob),
     .pc_from_alu                        (pc_from_alu_to_rob),
     .jpc_from_alu                       (jpc_from_alu_to_rob),
-    .data_from_fc                      (data_from_fc_to_rob),
-    .pc_from_fc                       (pc_from_fc_to_rob),
+    .data_from_slb                      (data_from_slb_to_rob),
+    .pc_from_slb                       (commit_pc_from_slb_to_rob),
     .pc_from_dc                        (pc_from_dc_to_rob),
     .rd_from_dc                        (rd_from_dc_to_rob),
-    .op_from_dc                         (op_from_dc_to_rob),
     .is_exception_to_instr_queue        (is_exception_from_rob_to_iq),
     .is_exception_to_reg                (is_exception_from_rob_to_rf),
     .is_exception_to_rs                 (is_exception_from_rob_to_rs),
-    .is_exception_to_fc                (is_exception_from_rob_to_fc),
+    .is_exception_to_slb                (is_exception_from_rob_to_slb),
     .is_exception_to_rob                (is_exception_from_rob_to_rob),
+    .is_exception_to_fc                 (is_exception_from_rob_to_fc),
     .is_exception_to_ic                 (is_exception_from_rob_to_ic),
     .pc_to_instr_queue                  (jpc_from_rob_to_iq),
     .commit_rd_to_reg                   (commit_rd_from_rob_to_rf),
     .commit_pc_to_rs                    (commit_pc_from_rob_to_rs),
-    .commit_pc_to_fc                   (commit_pc_from_rob_to_fc),
+    .commit_pc_to_slb                   (commit_pc_from_rob_to_slb),
     .commit_pc_to_reg                   (commit_pc_from_rob_to_rf),
     .commit_data_to_rs                  (commit_data_from_rob_to_rs),
-    .commit_data_to_fc                 (commit_data_from_rob_to_fc),
+    .commit_data_to_slb                 (commit_data_from_rob_to_slb),
     .commit_data_to_reg                 (commit_data_from_rob_to_rf),
     .is_commit_to_reg                   (is_commit_from_rob_to_rf),
     .is_commit_to_rs                    (is_commit_from_rob_to_rs),
-    .is_commit_to_fc                   (is_commit_from_rob_to_fc)
+    .is_commit_to_slb                   (is_commit_from_rob_to_slb)
 );
 rf mrf(
     .rst(rst_in),
@@ -244,10 +311,10 @@ rf mrf(
     .v2_to_rs(v2_from_rf_to_rs),
     .q1_to_rs(q1_from_rf_to_rs),
     .q2_to_rs(q2_from_rf_to_rs),
-    .v1_to_fc(v1_from_rf_to_fc),
-    .v2_to_fc(v2_from_rf_to_fc),
-    .q1_to_fc(q1_from_rf_to_fc),
-    .q2_to_fc(q2_from_rf_to_fc),
+    .v1_to_slb(v1_from_rf_to_slb),
+    .v2_to_slb(v2_from_rf_to_slb),
+    .q1_to_slb(q1_from_rf_to_slb),
+    .q2_to_slb(q2_from_rf_to_slb),
     .pc_to_rs(pc_from_rf_to_rs)
 );
 dc mdc(
@@ -258,16 +325,16 @@ dc mdc(
     .is_empty_to_reg            (is_empty_from_dc_to_rf),    
     .is_empty_to_rob            (is_empty_from_dc_to_rob),
     .is_empty_to_rs             (is_empty_from_dc_to_rs),
-    .is_empty_to_fc            (is_empty_from_dc_to_fc),
-    .is_sl_to_fc               (is_sl_from_dc_to_fc),
+    .is_empty_to_slb            (is_empty_from_dc_to_slb),
+    .is_sl_to_slb               (is_sl_from_dc_to_slb),
     .is_sl_to_rs                (is_sl_from_dc_to_rs),
     .rd_to_reg                  (rd_from_dc_to_rf),
     .pc_to_reg                  (pc_from_dc_to_rf),
     .rs1_to_reg                 (rs1_from_dc_to_rf),
     .rs2_to_reg                 (rs2_from_dc_to_rf),
-    .imm_to_fc                 (imm_from_dc_to_fc),
-    .op_to_fc                  (op_from_dc_to_fc),
-    .pc_to_fc                  (pc_from_dc_to_fc),
+    .imm_to_slb                 (imm_from_dc_to_slb),
+    .op_to_slb                  (op_from_dc_to_slb),
+    .pc_to_slb                  (pc_from_dc_to_slb),
     .rd_to_rob                  (rd_from_dc_to_rob),
     .pc_to_rob                  (pc_from_dc_to_rob),
     .op_to_rob                  (op_from_dc_to_rob),
@@ -282,7 +349,7 @@ iq miq(
     .is_hit_from_ic                          ( is_hit_from_ic_to_iq                         ),
     .is_ready_from_rob                       (is_ready_from_rob_to_iq),
     .is_ready_from_rs                        (is_ready_from_rs_to_iq),
-    .is_ready_from_fc                       (is_ready_from_fc_to_iq),
+    .is_ready_from_slb                       (is_ready_from_slb_to_iq),
     .pc_from_rob                             ( jpc_from_rob_to_iq  ),
     .instr_from_ic                           ( instr_from_ic_to_iq                            ),
     .is_empty_to_dc                          ( is_empty_from_iq_to_dc     ),
@@ -312,32 +379,24 @@ fc mfc(
   .rdy(rdy_in),
   .clk(clk_in),
   .is_empty_from_ic(is_empty_from_ic_to_fc),
-  .is_empty_from_dc(is_empty_from_dc_to_fc),
+  .is_empty_from_slb(is_empty_from_slb_to_fc),
   .is_exception_from_rob(is_exception_from_rob_to_fc),
-  .is_commit_from_rob(is_commit_from_rob_to_fc),
-  .is_sl_from_dc(is_sl_from_dc_to_fc),
-
+  .is_store_from_slb(is_store_from_slb_to_fc),
   .addr_from_ic(addr_from_ic_to_fc),
   .data_from_ram(mem_din),
-  .pc_from_dc(pc_from_dc_to_fc),
-  .imm_from_dc(imm_from_dc_to_fc),
-  .op_from_dc(op_from_dc_to_fc),
-  .q1_from_rf(q1_from_rf_to_fc),
-  .q2_from_rf(q2_from_rf_to_fc),
-  .v1_from_rf(v1_from_rf_to_fc),
-  .v2_from_rf(v2_from_rf_to_fc),
-  .commit_pc_from_rob(commit_pc_from_rob_to_fc),
-  .commit_data_from_rob(commit_data_from_rob_to_fc),
+  .addr_from_slb(addr_from_slb_to_fc),
+  .data_from_slb(data_from_slb_to_fc),
+  .aim_from_slb(aim_from_slb_to_fc),
 
-  .is_commit_to_rob(is_commit_from_fc_to_rob),
+  .is_commit_to_slb(is_finish_from_fc_to_slb),
   .is_commit_to_ic(is_commit_from_fc_to_ic),
   .is_ready_to_iq(is_ready_from_fc_to_iq),
-  .is_instr_to_rob(is_instr_from_fc_to_rob),
+  .is_instr_to_slb(is_instr_from_fc_to_slb),
   .is_instr_to_ic(is_instr_from_fc_to_ic),
-  .data_to_rob(data_from_fc_to_rob),
-  .data_to_ic(instr_from_fc_to_ic),
   .is_store_to_ram(mem_wr),
-  .pc_to_rob(pc_from_fc_to_rob),
+  .is_store_to_slb(is_store_from_fc_to_slb),
+  .data_to_slb(data_from_fc_to_slb),
+  .data_to_ic(instr_from_fc_to_ic),
   .addr_to_ram(mem_a),
   .data_to_ram(mem_dout)
 );
