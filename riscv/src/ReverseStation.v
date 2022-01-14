@@ -49,27 +49,22 @@ reg is_empty;
 reg [PointerLength:`Zero] Free;
 reg [PointerLength:`Zero] Comp;
 reg [PointerLength:`Zero] Issue;
-reg [PointerLength:`Zero] Storage;
+//reg [PointerLength:`Zero] Storage;
 reg is_ready;
 reg is_issue;
 
-reg en_empty;
-reg en_sl;
-reg en_rdy;
-reg en_exception;
-reg en_commit;
-reg en_rst;
+//reg en_empty;
+//reg en_sl;
+//reg en_rdy;
+//reg en_exception;
+//reg en_commit;
+//reg en_rst;
 
 integer i;
 
 always @(posedge clk) begin
-    en_rst = rst;
-    en_rdy = rdy;
-    en_sl = is_sl_from_dc;
-    en_exception = is_exception_from_rob;
-    en_commit = is_commit_from_rob;
-    en_empty = is_empty_from_dc;
-    if(en_rst == `True) begin
+
+    if(rst == `True) begin
         is_ready <= `True;
         is_empty <= `True;
         is_issue <= `False;
@@ -78,7 +73,9 @@ always @(posedge clk) begin
         imm <= 0;
         op <= 0;
         pc <= 0;
-        Storage <= 0;
+        Free <= 0;
+        Issue <= 0;
+        Comp <= 0;
         for(i = 0 ;i <= RsLength; i= i+1) begin
             Value1[i] <= 0;
             Value2[i] <= 0;
@@ -90,21 +87,21 @@ always @(posedge clk) begin
             Imm[i] <= 0; 
         end
     end
-    else if(en_rdy == `False) begin
+    else if(rdy == `False) begin
         
     end
     else begin
-        if(en_exception == `True) begin
+        if(is_exception_from_rob == `True) begin
             is_issue <= `False;
             is_ready <= `True;
             is_empty <= `True;
-            Storage <= 0;
             v1 <= 0;
             v2 <= 0;
             imm <= 0;
             pc <= 0;
             for(i = 0 ; i <= RsLength ; i = i + 1) begin
                 is_busy[i] <= 0;
+                is_complete[i] <= 0;
             end
         end
         else begin
@@ -185,7 +182,7 @@ always @(posedge clk) begin
             Free <= 7;
         end
 
-        if(en_empty == `False && en_sl == `False) begin      
+        if(is_empty_from_dc == `False && is_sl_from_dc == `False) begin      
                 Pc[Free] <= pc_from_dc;
                 Imm[Free] <= imm_from_dc;
                 Op[Free] <= op_from_dc;
@@ -213,7 +210,7 @@ always @(posedge clk) begin
             end
             is_complete[Comp] <= `True;
         end
-        if(en_commit == `True) begin
+        if(is_commit_from_rob == `True) begin
             for(i = 0 ; i <= RsLength ; i = i+1) begin
                 if(is_busy[i] == `True) begin
                     if(Queue1[i] != 0 && Queue1[i] == commit_pc_from_rob)begin

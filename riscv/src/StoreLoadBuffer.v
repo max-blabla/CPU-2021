@@ -13,11 +13,12 @@ module slb #(
     input is_commit_from_rob,
     input [`PcLength:`Zero] commit_pc_from_rob,
     input [`DataLength:`Zero] commit_data_from_rob,
-
+    input [`PcLength:`Zero] commit_npc_from_rob,
     
     input [`PcLength:`Zero] pc_from_dc,
     input [`DataLength:`Zero] imm_from_dc,
     input [`OpcodeLength:`Zero] op_from_dc,
+   
 
     input [`PcLength:`Zero] q1_from_rf,
     input [`PcLength:`Zero] q2_from_rf,
@@ -26,38 +27,42 @@ module slb #(
 
     input [`DataLength:`Zero] data_from_fc,
     input is_finish_from_fc,
+    input is_ready_from_fc,
     input is_instr_from_fc,
     input is_store_from_fc,
 
     output [`DataLength:`Zero] data_to_rob,
     output [`DataLength:`Zero] data_to_fc,
     output is_store_to_fc,
-    output is_empty_to_fc,
+    output is_empty_to_ic,
     output is_commit_to_rob,
+    output is_empty_to_fc,
     output [`PcLength:`Zero] addr_to_fc,
     output [CntLength:`Zero] aim_to_fc,
     output is_ready_to_iq,
     output [`PcLength:`Zero] commit_pc_to_rob
 );
-reg en_sl;
-reg en_exception;
-reg en_clk;
-reg en_rst;
-reg en_rdy;
-reg en_empty;
-reg en_instr;
-reg en_finish;
-reg en_store;
-reg en_commit;
+//reg en_sl;
+//reg en_exception;
+//reg en_clk;
+//reg en_rst;
+//reg en_rdy;
+//reg en_empty;
+//reg en_instr;
+//reg en_finish;
+//reg en_store;
+//reg en_commit;
 
 reg [PointerLength:`Zero]head_pointer;
 reg [PointerLength:`Zero]tail_pointer;
 reg [PointerLength:`Zero]comp_pointer;
 
 reg is_ready;
+//reg is_issue;
 reg is_empty;
 reg is_commit;
 reg is_store;
+reg is_receive;
 reg is_confirm;
 
 integer i;
@@ -71,49 +76,60 @@ reg [`DataLength:`Zero]V2[BufferLength:`Zero];
 reg [`DataLength:`Zero]Imm[BufferLength:`Zero];
 reg [`OpcodeLength:`Zero]Op[BufferLength:`Zero];
 reg store_status[BufferLength:`Zero];
-reg commit_status[BufferLength:`Zero];
+//reg commit_status[BufferLength:`Zero];
 reg comp_status[BufferLength:`Zero];
 
 reg [`PcLength:`Zero]commit_pc;
 reg [`PcLength:`Zero]addr;
+reg is_safe;
 reg [`DataLength:`Zero]commit_data;
 reg [`DataLength:`Zero]data;
 reg [CntLength:`Zero]aim;
 always @(posedge clk) begin
-    en_sl = is_sl_from_dc;
-    en_exception = is_exception_from_rob;
-    en_rst = rst;
-    en_rdy = rdy;
-    en_store = is_store_from_fc;
-    en_instr = is_instr_from_fc;
-    en_empty = is_empty_from_dc;
-    en_finish = is_finish_from_fc;
-    en_commit = is_commit_from_rob;
-    if(en_rst == `True) begin
+    if(rst == `True) begin
         head_pointer <= 0;
         tail_pointer <= 0;
+        comp_pointer <= 0;
         is_confirm <= `False;
+        is_store <= `False;
         is_ready <= `True;
         is_empty <= `True;
+        is_safe <= `False;
+        is_commit <= `False;
+        commit_data <= 0;
+        aim <= 0;
+        for(i = 0 ; i <= BufferLength;i=i+1) begin
+            Pc[i] <= 0;
+            Q1[i] <= 0;
+            Q2[i] <= 0;
+            V1[i] <= 0;
+            V2[i] <= 0;
+            Imm[i] <= 0;
+            Op[i] <= 0;
+            store_status[i] <= 0;
+        //    commit_status[i] <= 0;
+            comp_status[i] <= 0;
+        end
     end
-    else if (en_rdy == `False) begin
+    else if (rdy == `False) begin
         
     end
     else begin
         //清空
-        if(en_exception == `True) begin
+        if(is_exception_from_rob == `True) begin
             head_pointer <= 0;
             tail_pointer <= 0;
             is_ready <= `True;
             is_empty <= `True;
+            is_safe <= `False;
             is_confirm <= `False;
         end
         else begin
             //输入
             if(head_pointer != tail_pointer + 3'b001 && head_pointer != tail_pointer + 3'b010 && head_pointer != tail_pointer + 3'b011) is_ready <= `True;
             else is_ready <= `False;
-
-            if(en_empty == `False && en_sl == `True) begin
+            
+            if(is_empty_from_dc == `False && is_sl_from_dc == `True) begin
                 Pc[tail_pointer] <= pc_from_dc;
                 Imm[tail_pointer] <= imm_from_dc;
                 comp_status[tail_pointer] <= `False;
@@ -151,13 +167,13 @@ always @(posedge clk) begin
             if(is_commit == `True) is_commit <= `False;
             if(store_status[head_pointer] == `True && head_pointer != tail_pointer)begin
                 if(Q1[head_pointer] == 0 && Q2[head_pointer] == 0 && comp_status[head_pointer] == `True) begin
-                    if(is_confirm == `False) begin
+                    if(is_confirm == `False && is_ready_from_fc == `True) begin
                         is_commit <= `True;
                         commit_pc <= Pc[head_pointer];
                         commit_data <= V2[head_pointer];
                         is_confirm <= `True;
                     end
-                    else if(is_confirm == `True && en_commit == `True && commit_pc_from_rob == Pc[head_pointer]) begin
+                    else if(is_confirm == `True && is_commit_from_rob == `True && commit_pc_from_rob == Pc[head_pointer] ) begin
                         is_empty <= `False;
                         is_confirm <= `False;
                         is_store <= store_status[head_pointer];
@@ -173,13 +189,16 @@ always @(posedge clk) begin
                 end
                 
             end
-            else if(store_status[head_pointer] == `False && head_pointer != tail_pointer)begin
+            else if(store_status[head_pointer] == `False && head_pointer != tail_pointer && is_ready_from_fc == `True)begin
                 if(Q1[head_pointer] == 0 && Q2[head_pointer] == 0 && comp_status[head_pointer] == `True) begin
-                    if(is_confirm  == `False) begin
-                        is_confirm <= `True;
+                    addr <= V1[head_pointer] + {{20{Imm[head_pointer][11]}},Imm[head_pointer][11:0]};
+                    if(is_safe == `False && (addr[17:16]!=2'b11||(addr[17:16]==2'b11 && commit_npc_from_rob == Pc[head_pointer])))
+                        is_safe <= `True;
+                    else if(is_safe == `True && is_confirm  == `False) begin
                         is_empty <= `False;
+                        is_confirm <= `True;
+                        is_safe <= `False;
                         is_store <= store_status[head_pointer];
-                        addr <= V1[head_pointer] + {{20{Imm[head_pointer][11]}},Imm[head_pointer][11:0]};
                         data <= 0;
                         case(Op[head_pointer])
                             `LBU,`LB:aim <= 2'b01;
@@ -187,23 +206,24 @@ always @(posedge clk) begin
                             `LW:aim <= 2'b00;
                         endcase
                     end
-                    else if(is_confirm == `True && en_finish == `True && en_instr == `False && en_store == `False) begin
+                    else if(is_confirm == `True && is_finish_from_fc == `True &&is_instr_from_fc == `False && is_store_from_fc == `False) begin
                         is_confirm <= `False;
                         is_commit <= `True;
                         case(Op[head_pointer])
                             `LB:commit_data <= {{24{data_from_fc[7]}},data_from_fc[7:0]};
                             `LH:commit_data <= {{16{data_from_fc[15]}},data_from_fc[15:0]};
-                            `LW,`LBU,`LHU:commit_data <= data_from_fc;
+                            `LW,`LHU,`LBU:commit_data <= data_from_fc;
                         endcase
                         commit_pc <= Pc[head_pointer];
                         head_pointer <= head_pointer + 1;
+                    
                     end
                 end
                 
             end
         end
         //更新
-        if(en_commit == `True) begin
+        if(is_commit_from_rob == `True) begin
             for(i = 0; i <= BufferLength;i = i+ 1) begin
                 if(Q1[i] == commit_pc_from_rob && Q1[i] !=0 ) begin
                     Q1[i] <= 0 ;
@@ -223,6 +243,7 @@ assign commit_pc_to_rob = commit_pc;
 assign data_to_fc = data;
 assign is_store_to_fc = is_store;
 assign is_empty_to_fc = is_empty;
+assign is_empty_to_ic = is_empty;
 assign aim_to_fc = aim;
 assign is_commit_to_rob = is_commit;
 assign addr_to_fc = addr;

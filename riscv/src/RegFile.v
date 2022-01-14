@@ -40,20 +40,15 @@ reg [`PcLength:`Zero] q1;
 reg [`PcLength:`Zero] q2;
 reg [`PcLength:`Zero] pc;
 reg [RdLength:`Zero] rd;
-reg en_empty;
-reg en_commit;
-reg en_exception;
-reg en_rst;
-reg en_rdy;
+//reg en_empty;
+//reg en_commit;
+//reg en_exception;
+//reg en_rst;
+//reg en_rdy;
 
 always @(posedge clk) begin
-    en_rst = rst;
-    en_rdy = rdy;
-    en_commit = is_commit_from_rob;
-    en_exception = is_exception_from_rob;
-    en_empty = is_empty_from_decoder;
 
-    if(en_rst == `True) begin
+    if(rst == `True) begin
         for(i = 0 ; i <= RegFileLength ; i = i + 1) begin
             RegValue[i] <= 0;
             RegQueue[i] <= 0;
@@ -65,12 +60,12 @@ always @(posedge clk) begin
         pc <= 0;
         rd <= 0;
     end
-    else if(en_rdy == `False) begin
+    else if(rdy == `False) begin
         
     end
     else begin
-        if(en_exception == `True) begin
-            if(rd_from_rob != 0 && en_commit== `True) begin
+        if(is_exception_from_rob == `True) begin
+            if(rd_from_rob != 0 && is_commit_from_rob == `True) begin
                 RegValue[rd_from_rob] <= data_from_rob;
             end
             for(i = 0 ;i <= RegFileLength ; i = i + 1) begin
@@ -84,11 +79,13 @@ always @(posedge clk) begin
             pc <= 0;
         end
         else begin
-            if(en_commit == `True) begin
-                if(RegQueue[rd_from_rob] == pc_from_rob && rd_from_rob != 0) RegQueue[rd_from_rob] = 0;
+            if(is_commit_from_rob == `True) begin
+                if(RegQueue[rd_from_rob] == pc_from_rob && rd_from_rob != 0 )
+                if((is_empty_from_decoder == `True && rd_from_decoder == rd_from_rob)||rd_from_decoder != rd_from_rob)
+                 RegQueue[rd_from_rob] <= 0;
                 if(rd_from_rob != 0) RegValue[rd_from_rob] = data_from_rob;
             end
-            if(en_empty == `False) begin
+            if(is_empty_from_decoder == `False) begin
                 if(rd_from_decoder != 0) begin
                     RegQueue[rd_from_decoder] <= pc_from_decoder;
                 end
@@ -96,8 +93,11 @@ always @(posedge clk) begin
                 pc <= pc_from_decoder;
                 v1 <= RegValue[rs1_from_decoder];
                 v2 <= RegValue[rs2_from_decoder];
-                q1 <= RegQueue[rs1_from_decoder];
-                q2 <= RegQueue[rs2_from_decoder];
+                if(is_commit_from_rob == `True && RegQueue[rs1_from_decoder] == pc_from_rob ) q1 <= 0;
+                else q1 <= RegQueue[rs1_from_decoder];
+                if(is_commit_from_rob == `True && RegQueue[rs2_from_decoder] == pc_from_rob ) q2 <= 0;
+                else q2 <= RegQueue[rs2_from_decoder];
+               // q2 <= RegQueue[rs2_from_decoder];
             end
         end
     end

@@ -1,7 +1,7 @@
 `include "parameters.v"
 module rob #
 (
-    parameter BufferLength = 16,
+    parameter BufferLength = 15,
     parameter PointerLength = 3,
     parameter RdLength = 4
 )
@@ -36,6 +36,7 @@ module rob #
     output wire[`PcLength:`Zero] commit_pc_to_rs,
     output wire[`PcLength:`Zero] commit_pc_to_slb,
     output wire[`PcLength:`Zero] commit_pc_to_reg,
+    output wire[`PcLength:`Zero] commit_npc_to_slb,
     output wire[`DataLength:`Zero] commit_data_to_rs,
     output wire[`DataLength:`Zero] commit_data_to_slb,
     output wire[`DataLength:`Zero] commit_data_to_reg,
@@ -54,46 +55,44 @@ reg [RdLength:`Zero] rd_storage[BufferLength:`Zero];
 //reg status_storage[BufferLength:`Zero];
 reg [PointerLength:`Zero] head_pointer;
 reg [PointerLength:`Zero] tail_pointer;
-//提交�?
+//提交�??
 
 reg [`DataLength:`Zero] commit_data;
 reg [`PcLength:`Zero] commit_jpc;
 reg [`PcLength:`Zero] commit_pc;
 reg [RdLength:`Zero] commit_rd;
+reg [`PcLength:`Zero] commit_npc;
 reg finish[BufferLength:`Zero];
-reg [`PcLength:`Zero] pc;
-reg [63:0] cnt;
+//reg [63:0] cnt;
 
-reg en_finish_alu;
-reg en_commit_slb;
-reg en_exception;
+//reg en_finish_alu;
+//reg en_commit_slb;
+//reg en_exception;
 
 reg is_exception;
 reg is_finish;
 reg is_ready;
-reg en_empty;
-reg en_rst;
-reg en_rdy;
-
+//reg en_empty;
+//reg en_rst;
+//reg en_rdy;
+//integer fp_w;
 integer i;
 
+//initial begin
+    //fp_w = $fopen("out.txt");
+//end
 always @(posedge clk) begin
-    en_rst = rst;
-    en_rdy =rdy;
-    en_finish_alu = is_finish_from_alu;
-    en_commit_slb = is_commit_from_slb;
-    en_exception = is_exception_from_rob;
-    en_empty = is_empty_from_dc;
-    if(en_rst == `True) begin
-        cnt <= 0;
+
+    if(rst == `True) begin
+     //   cnt <= 0;
         is_exception <=0;
         is_ready <= `True;
         is_finish <= 0;
-        pc <= 0;
         commit_data <= 0;
         commit_pc <= 0;
         commit_rd <= 0;
         commit_jpc <= 0;
+        commit_npc <= 0;
         tail_pointer <= 0;
         head_pointer <= 0;
         for(i = 0 ; i <= BufferLength ; i = i+1) begin
@@ -101,26 +100,27 @@ always @(posedge clk) begin
             pc_storage[i] <= 0;
             data_storage[i] <= 0;
             finish[i] <= 0;
+            jpc_storage[i] <= 0;
         end
     end
-    else if(en_rdy == `False) begin
+    else if(rdy == `False) begin
         
     end
     else begin
-        if(en_exception == `True) begin
-             is_exception <=0;
+        if(is_exception_from_rob == `True) begin
+            is_exception <=0;
             is_ready <= `True;
             is_finish <= 0;
-            pc <= 0;
             commit_data <= 0;
             commit_pc <= 0;
             commit_rd <= 0;
             commit_jpc <= 0;
+           // 
             tail_pointer <= 0;
             head_pointer <= 0;
         end
         else begin
-           if(en_finish_alu == `True) begin
+           if(is_finish_from_alu == `True) begin
                 for(i = 0 ; i <= BufferLength ; i = i + 1)begin
                     if(pc_storage[i] == pc_from_alu && finish[i] == `False) begin
                         finish[i] <= `True;
@@ -130,7 +130,7 @@ always @(posedge clk) begin
                 end
             end
 
-            if(en_commit_slb == `True) begin
+            if(is_commit_from_slb == `True) begin
                 for(i = 0 ; i <= BufferLength ; i = i + 1)begin
                     if(pc_storage[i] == pc_from_slb && finish[i] == `False) begin
                         finish[i] <= `True;
@@ -138,10 +138,15 @@ always @(posedge clk) begin
                     end
                 end
             end
-
+            //if(head_pointer != tail_pointer) commit_npc <= pc_storage[head_pointer];
             if(finish[head_pointer] == `True && head_pointer != tail_pointer) begin
-            //  $display("%d %d",pc_storage[head_pointer],data_storage[head_pointer]);
+          //      if(pc_storage[head_pointer] == 4224) $finish;
+         //       cnt <= cnt + 1;
+         //       if(cnt % 10000 == 0 ) $display("%d",cnt);
+        //      $display("%d %d",pc_storage[head_pointer],data_storage[head_pointer]);
         //      $display(jpc_storage[head_pointer]);
+         //       if(pc_storage[head_pointer] == 4416 ) $finish;
+           //     $write("%d %d %d\n",pc_storage[head_pointer],rd_storage[head_pointer],data_storage[head_pointer] );
                 is_finish <= `True;
                 commit_data <= data_storage[head_pointer];
                 commit_pc <= pc_storage[head_pointer];
@@ -159,12 +164,13 @@ always @(posedge clk) begin
             else begin
                 is_finish <= `False;
                 commit_pc <= 0;
+                if(head_pointer != tail_pointer) commit_npc <= pc_storage[head_pointer];
             end
             
             if(head_pointer != tail_pointer + 4'b0011 && head_pointer != tail_pointer + 4'b0010 && head_pointer != tail_pointer + 4'b0001) is_ready <= `True;
             else is_ready <= `False;
             
-            if(en_empty == `False) begin
+            if(is_empty_from_dc == `False) begin
                 rd_storage[tail_pointer] <= rd_from_dc;
                 pc_storage[tail_pointer] <= pc_from_dc;
                 jpc_storage[tail_pointer] <= pc_from_dc+4;
@@ -191,6 +197,7 @@ assign commit_rd_to_reg = commit_rd;
 assign commit_pc_to_rs =commit_pc;
 assign commit_pc_to_slb =commit_pc;
 assign commit_pc_to_reg=commit_pc;
+assign commit_npc_to_slb = commit_npc;
 assign commit_data_to_rs = commit_data;
 assign commit_data_to_slb =  commit_data;
 assign commit_data_to_reg= commit_data;

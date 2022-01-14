@@ -38,9 +38,7 @@ reg en_rdy;
 reg [`PcLength:`Zero] pc_dc;
 reg [`PcLength:`Zero] pc_ic;//指向尾部pc, 尾部即为传给fetcher�?
 reg [`InstrLength:`Zero] instr_dc;
-reg [PointerStorage:`Zero]test;
-reg [`PcLength:`Zero]test2;
-reg [`PcLength:`Zero]lasttest;
+
 
 reg is_empty_ic;
 reg is_empty_dc;//给dc�?
@@ -49,18 +47,12 @@ reg is_receive;
 
 integer i;
 always @(posedge clk) begin
-    en_rst = rst;
-    en_rdy = rdy;
-    en_exception = is_exception_from_rob;
-    en_ready_rob = is_ready_from_rob;
-    en_ready_rs = is_ready_from_rs;
-    en_ready_slb = is_ready_from_slb;
-    en_hit = is_hit_from_ic;
-    if(en_rst == `True) begin
+    if(rst == `True) begin
         head_pointer <= 0;
         tail_pointer <= 0;
         pc_ic <= 0;
-
+        pc_dc <= 0;
+        instr_dc <= 0;
         is_ready <= `True;
         is_empty_dc <= `True;
         is_receive <= `False;
@@ -71,11 +63,11 @@ always @(posedge clk) begin
             pc_queue[i] <= 0;
         end 
     end
-    else if(en_rdy == `False) begin
+    else if(rdy == `False) begin
         
     end
     else begin
-        if(en_exception == `True) begin
+        if(is_exception_from_rob == `True) begin
             head_pointer <= 0;
             tail_pointer <= 0;
             pc_ic <= pc_from_rob;
@@ -87,7 +79,7 @@ always @(posedge clk) begin
 
         end
         else begin
-            if(en_hit == `True) begin
+            if(is_hit_from_ic == `True) begin
                 //en_hit <= `False;
                 instr_queue[tail_pointer] <= instr_from_ic;
                 pc_queue[tail_pointer] <= pc_ic;
@@ -105,7 +97,7 @@ always @(posedge clk) begin
             end
             else is_empty_ic <= `True;
 
-            if(en_ready_rob == `True && en_ready_slb == `True && en_ready_rs == `True) is_ready <= `True;
+            if(is_ready_from_rob == `True && is_ready_from_slb == `True && is_ready_from_rs == `True) is_ready <= `True;
             else is_ready <= `False;
 
             if(is_ready == `True) begin

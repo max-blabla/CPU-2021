@@ -1,7 +1,6 @@
 `include "parameters.v"
 module alu (
     input rst,
-    input clk,
     input wire[`OpcodeLength:`Zero] op_from_rs,
     input wire is_empty_from_rs,
     input wire[`DataLength:`Zero] v1_from_rs,

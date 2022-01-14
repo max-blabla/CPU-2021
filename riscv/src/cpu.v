@@ -123,7 +123,8 @@ wire [`PcLength:`Zero] pc_from_fc_to_rob;
 wire is_commit_from_fc_to_rob;
 wire is_instr_from_fc_to_rob;
 
-wire is_ready_from_fc_to_iq;
+wire is_ready_from_fc_to_ic;
+wire is_ready_from_fc_to_slb;
 wire is_ready_from_rob_to_iq;
 wire is_ready_from_rs_to_iq;
 
@@ -162,6 +163,7 @@ wire [`DataLength:`Zero] data_from_slb_to_rob;
 wire [`PcLength:`Zero] commit_pc_from_slb_to_rob;
 wire [`DataLength:`Zero] data_from_slb_to_fc;
 wire is_store_from_slb_to_fc;
+wire is_empty_from_slb_to_ic;
 wire is_empty_from_slb_to_fc;
 wire is_commit_from_slb_to_rob;
 wire [`PcLength:`Zero]addr_from_slb_to_fc;
@@ -170,6 +172,7 @@ wire [1:0] aim_from_slb_to_fc;
 wire is_ready_from_slb_to_iq;
 
 wire is_commit_from_rob_to_slb;
+wire [`PcLength:`Zero] commit_npc_from_rob_to_slb;
 wire is_store_from_fc_to_slb;
 
 slb mslb(
@@ -197,21 +200,24 @@ slb mslb(
   .is_finish_from_fc(is_finish_from_fc_to_slb),
   .is_instr_from_fc(is_instr_from_fc_to_slb),
   .is_store_from_fc(is_store_from_fc_to_slb),
+  .is_ready_from_fc(is_ready_from_fc_to_slb),
 
   .data_to_rob(data_from_slb_to_rob),
   .data_to_fc(data_from_slb_to_fc),
   .is_store_to_fc(is_store_from_slb_to_fc),
   .is_empty_to_fc(is_empty_from_slb_to_fc),
+  .is_empty_to_ic(is_empty_from_slb_to_ic),
   .is_commit_to_rob(is_commit_from_slb_to_rob),
   .addr_to_fc(addr_from_slb_to_fc),
   .is_ready_to_iq(is_ready_from_slb_to_iq),
   .commit_pc_to_rob(commit_pc_from_slb_to_rob),
+  .commit_npc_from_rob(commit_npc_from_rob_to_slb),
   .aim_to_fc(aim_from_slb_to_fc)
 );
 
 alu malu(
     .rst                    (rst_in),
-    .clk                    (clk_in),
+  //  .clk                    (clk_in),
     .op_from_rs             (op_from_rs_to_alu),
     .v1_from_rs             (v1_from_rs_to_alu),
     .v2_from_rs             (v2_from_rs_to_alu),
@@ -279,6 +285,7 @@ rob mrob(
     .commit_pc_to_rs                    (commit_pc_from_rob_to_rs),
     .commit_pc_to_slb                   (commit_pc_from_rob_to_slb),
     .commit_pc_to_reg                   (commit_pc_from_rob_to_rf),
+    .commit_npc_to_slb                  (commit_npc_from_rob_to_slb),
     .commit_data_to_rs                  (commit_data_from_rob_to_rs),
     .commit_data_to_slb                 (commit_data_from_rob_to_slb),
     .commit_data_to_reg                 (commit_data_from_rob_to_rf),
@@ -338,7 +345,7 @@ dc mdc(
     .pc_to_rs                   (pc_from_dc_to_rs)
 );
 iq miq(
-    .rst                                     ( rst_in                                      ),
+    .rst                                     ( rst_in                                    ),
     .clk                                     ( clk_in                                   ),
     .rdy                                      (rdy_in),
     .is_exception_from_rob                   ( is_exception_from_rob_to_iq ),
@@ -362,6 +369,8 @@ ic mic(
   .instr_from_fc(instr_from_fc_to_ic),
   .is_commit_from_fc(is_commit_from_fc_to_ic),
   .is_empty_from_iq(is_empty_from_iq_to_ic),
+  .is_empty_from_slb(is_empty_from_slb_to_ic),
+  .is_ready_from_fc(is_ready_from_fc_to_ic),
   .is_instr_from_fc(is_instr_from_fc_to_ic),
   .addr_to_fc(addr_from_ic_to_fc),
   .is_empty_to_fc(is_empty_from_ic_to_fc),
@@ -387,7 +396,8 @@ fc mfc(
 
   .is_commit_to_slb(is_finish_from_fc_to_slb),
   .is_commit_to_ic(is_commit_from_fc_to_ic),
-  .is_ready_to_iq(is_ready_from_fc_to_iq),
+  .is_ready_to_ic(is_ready_from_fc_to_ic),
+  .is_ready_to_slb(is_ready_from_fc_to_slb),
   .is_instr_to_slb(is_instr_from_fc_to_slb),
   .is_instr_to_ic(is_instr_from_fc_to_ic),
   .is_store_to_ram(mem_wr),
@@ -397,7 +407,20 @@ fc mfc(
   .addr_to_ram(mem_a),
   .data_to_ram(mem_dout)
 );
+//reg pesudo_full;
+//reg [63:0]cnt;
 
+ //initial begin
+ // cnt = 0;
+ // pesudo_full = `False;
+ //end
+ //always @(posedge clk_in) begin
+  //  cnt <= cnt + 1;
+  //  if(cnt % 10000 == 0)begin
+  //   pesudo_full <= ~pesudo_full;
+     // $display(cnt);
+  //  end 
+ //end
 
 
 always @(posedge clk_in)
